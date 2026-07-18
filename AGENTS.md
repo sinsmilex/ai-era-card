@@ -79,36 +79,56 @@ pnpm monorepo:
   (resets on cold start — fine for dev, not yet wired for prod as of this
   writing).
 
-## Deployed
+## Deployed — fully live as of 2026-07-19
 
-- Production: **https://ai-era-card.vercel.app**
-- Vercel project `ai-era-card`, team `sin-smile`, root directory `apps/web`
-- Neon Postgres attached via Vercel Marketplace integration (`DATABASE_URL`
-  env var wired automatically)
+- Production: **https://ai-era-card.vercel.app** — git-connected to
+  `github.com/sinsmilex/ai-era-card` (`main` branch), every push to `main`
+  auto-deploys.
+- CLI: **`npx aieracard`** is live on the public npm registry
+  (`aieracard@0.1.0`), verified end-to-end from a clean machine — default
+  `--endpoint` already points at production.
+- Vercel project `ai-era-card`, team `sin-smile`, root directory `apps/web`.
+- Neon Postgres attached via Vercel Marketplace (`DATABASE_URL`).
+- Upstash KV attached via Vercel Marketplace (`KV_REST_API_URL` /
+  `KV_REST_API_TOKEN` — **note the Marketplace names these `KV_REST_API_*`,
+  not `UPSTASH_REDIS_REST_*`**; `lib/ratelimit.ts` accepts either name).
+  Rate limiting is real (Redis-backed sliding window) in production now,
+  not the in-memory fallback.
 - First real card (Claude Code + Cursor combined, all-time):
   https://ai-era-card.vercel.app/s/mmi5GrqvJt
 
-## Known gaps / in-progress work
+**Two agents may be working on this repo concurrently** (this file has
+been edited by more than one AI session already — check `git log` for
+recent context before assuming you have the full picture). Keep commits
+small and scoped; re-read this file's "Deployed" section before starting
+work, since it's updated as things ship, and treat it as more current than
+your own memory of a previous session.
 
-- **Upstash Redis not yet installed** — rate limiting is still the
-  in-memory fallback in production. Marketplace terms need accepting by
-  the account owner (one click, browser-only — an AI agent can't do this,
-  it's an account-identity consent action) before `vercel install
-  upstash/upstash-kv` can proceed.
-- **CLI not yet published to npm.** Name `aieracard` is confirmed
-  available. Blocked on `npm login` succeeding — this specific environment
-  hits a reproducible npm CLI bug (`Exit handler never called!`) when
-  `npm login` runs without a real TTY, so the OAuth browser flow can't
-  complete this way. Workaround in progress: an npm **Automation access
-  token** (npmjs.com → Access Tokens → Generate New Token → Automation),
-  used non-interactively instead of the login flow.
-- **git repo initialized, one commit made, not pushed anywhere** — no
-  GitHub remote yet, so there's no code backup and Vercel deploys are
-  manual (`vercel deploy --prod`) rather than git-triggered.
+## Known gaps / next up
+
 - **OpenRouter collector unverified against a live account** — written
   against the documented API shape but never run against a real key (the
   Cursor collector needed real-world correction after being written from
-  docs alone, so treat OpenRouter with the same suspicion until tested).
+  docs alone — split-date windows, dropping `userId`, session-vs-other JWT
+  selection — none of which was in the docs; treat OpenRouter with the
+  same suspicion until someone runs `--dry-run` with a real
+  `OPENROUTER_API_KEY`).
+- **No CI.** Nothing runs typecheck/build on push or PR — a broken commit
+  to `main` auto-deploys straight to production. Cheapest fix: a GitHub
+  Actions workflow running `pnpm -r build` (covers `tsc --noEmit` for
+  schema/cli plus `next build` for web).
+- **No automated tests.** The JSONL/CSV parsers were validated by hand
+  against real logs and a live account, not by a test suite — a future
+  refactor has no safety net. `apps/cli/src/collectors/*` are the highest-
+  value targets (pure functions, easy to fixture).
+- **Undocumented Cursor endpoints can break silently.** No monitoring; if
+  Cursor changes `get-aggregated-usage-events`/`get-filtered-usage-events`,
+  the CLI just falls back to CSV without anyone finding out until a user
+  reports it. Not launch-blocking, but worth a cheap daily check eventually.
+- **No custom domain, no analytics, no error tracking (Sentry etc.)** —
+  fine pre-launch, worth revisiting once real users show up.
+- **Phase 2 (map/world) not started** — deliberately. Don't start it
+  before the card format itself has been validated by real shares.
 
 ## Conventions worth preserving
 
