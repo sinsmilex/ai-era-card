@@ -4,7 +4,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm --filter web dev",
-    "cli": "pnpm --filter aieracard start"
+    "cli": "pnpm --filter aieracard start",
+    "test": "pnpm -r --if-present test"
   },
   "packageManager": "pnpm@9.14.3"
 }
