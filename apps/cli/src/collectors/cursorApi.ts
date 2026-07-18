@@ -16,6 +16,46 @@ export interface CursorApiResult {
   source: CursorSource;
   activeDates: Set<string>;
   email: string | null;
+  warnings: string[];
+}
+
+interface CursorWindow {
+  startMs: number;
+  endMs: number;
+}
+
+interface FilteredWindowResult {
+  requestCount: number;
+  activeDates: Set<string>;
+  firstMs: number | null;
+  lastMs: number | null;
+}
+
+class CursorApiError extends Error {
+  constructor(
+    readonly status: number | null,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503]);
+const MAX_API_ATTEMPTS = 3;
+
+function windowLabel({ startMs, endMs }: CursorWindow): string {
+  return `${new Date(startMs).toISOString().slice(0, 10)} to ${new Date(endMs)
+    .toISOString()
+    .slice(0, 10)}`;
+}
+
+function splitWindow(window: CursorWindow): [CursorWindow, CursorWindow] | null {
+  const midpoint = Math.floor((window.startMs + window.endMs) / 2);
+  if (midpoint <= window.startMs || midpoint >= window.endMs) return null;
+  return [
+    { startMs: window.startMs, endMs: midpoint },
+    { startMs: midpoint, endMs: window.endMs },
+  ];
 }
 
 function jwtClaims(token: string): any {
@@ -125,22 +165,170 @@ async function api(
     headers["Content-Type"] = "application/json";
     headers["Origin"] = BASE; // dashboard CSRF check
   }
-  const res = await fetch(BASE + path, {
-    method: body !== undefined ? "POST" : "GET",
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(`cursor.com ${path} returned ${res.status}`);
-  const text = await res.text();
-  return text ? JSON.parse(text) : {};
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MAX_API_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(BASE + path, {
+        method: body !== undefined ? "POST" : "GET",
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      if (!res.ok) {
+        throw new CursorApiError(
+          res.status,
+          `cursor.com ${path} returned ${res.status}`
+        );
+      }
+      const text = await res.text();
+      return text ? JSON.parse(text) : {};
+    } catch (error) {
+      lastError = error;
+      const status = error instanceof CursorApiError ? error.status : null;
+      const retryable = status === null || RETRYABLE_STATUSES.has(status);
+      if (!retryable || attempt === MAX_API_ATTEMPTS) break;
+      await new Promise((resolve) => setTimeout(resolve, 200 * 2 ** (attempt - 1)));
+    }
+  }
+  throw lastError;
+}
+
+function aggregateInto(
+  agg: any,
+  totals: { tokens: number; cents: number; models: Set<string> }
+) {
+  for (const r of agg?.aggregations ?? []) {
+    totals.tokens +=
+      Number(r.inputTokens ?? 0) +
+      Number(r.outputTokens ?? 0) +
+      Number(r.cacheReadTokens ?? 0) +
+      Number(r.cacheWriteTokens ?? 0);
+    totals.cents += Number(r.totalCents ?? 0);
+    const m = String(r.modelIntent ?? r.model ?? "");
+    // Skip Cursor's service labels that aren't actual models.
+    if (m && !["unknown", "default", "premium", "agent_review"].includes(m))
+      totals.models.add(m);
+  }
+}
+
+async function collectAggregatedWindow(
+  cookie: string,
+  window: CursorWindow,
+  totals: { tokens: number; cents: number; models: Set<string> },
+  warnings: string[],
+  depth = 0
+): Promise<void> {
+  try {
+    const agg = await api(cookie, "/api/dashboard/get-aggregated-usage-events", {
+      teamId: 0,
+      startDate: String(window.startMs),
+      endDate: String(window.endMs),
+    });
+    aggregateInto(agg, totals);
+  } catch (error: any) {
+    const halves = depth === 0 ? splitWindow(window) : null;
+    if (halves) {
+      warnings.push(
+        `aggregated usage failed for ${windowLabel(window)}; retrying its two halves`
+      );
+      await collectAggregatedWindow(cookie, halves[0], totals, warnings, depth + 1);
+      await collectAggregatedWindow(cookie, halves[1], totals, warnings, depth + 1);
+      return;
+    }
+    warnings.push(
+      `aggregated usage unavailable for ${windowLabel(window)}: ${error.message}`
+    );
+  }
+}
+
+async function collectFilteredWindow(
+  cookie: string,
+  window: CursorWindow,
+  onProgress: ((fetched: number, total: number) => void) | undefined,
+  warnings: string[],
+  depth = 0
+): Promise<FilteredWindowResult> {
+  try {
+    const result: FilteredWindowResult = {
+      requestCount: 0,
+      activeDates: new Set<string>(),
+      firstMs: null,
+      lastMs: null,
+    };
+    const pageSize = 1000;
+    let total = 0;
+    for (let page = 1; page <= 300; page++) {
+      const chunk = await api(cookie, "/api/dashboard/get-filtered-usage-events", {
+        teamId: 0,
+        startDate: String(window.startMs),
+        endDate: String(window.endMs),
+        page,
+        pageSize,
+      });
+      if (page === 1) total = Number(chunk?.totalUsageEventsCount ?? 0);
+      const events: any[] = chunk?.usageEventsDisplay ?? [];
+      if (events.length === 0) break;
+      result.requestCount += events.length;
+      for (const ev of events) {
+        const ts = Number(ev.timestamp ?? 0);
+        if (ts <= 0) continue;
+        if (result.firstMs == null || ts < result.firstMs) result.firstMs = ts;
+        if (result.lastMs == null || ts > result.lastMs) result.lastMs = ts;
+        const d = toDateOnly(new Date(ts).toISOString());
+        if (d) result.activeDates.add(d);
+      }
+      onProgress?.(result.requestCount, total);
+      if (result.requestCount >= total) break;
+    }
+    return result;
+  } catch (error: any) {
+    const halves = depth === 0 ? splitWindow(window) : null;
+    if (halves) {
+      warnings.push(
+        `usage events failed for ${windowLabel(window)}; retrying its two halves`
+      );
+      const [left, right] = await Promise.all([
+        collectFilteredWindow(cookie, halves[0], onProgress, warnings, depth + 1),
+        collectFilteredWindow(cookie, halves[1], onProgress, warnings, depth + 1),
+      ]);
+      return {
+        requestCount: left.requestCount + right.requestCount,
+        activeDates: new Set([...left.activeDates, ...right.activeDates]),
+        firstMs:
+          left.firstMs == null
+            ? right.firstMs
+            : right.firstMs == null
+              ? left.firstMs
+              : Math.min(left.firstMs, right.firstMs),
+        lastMs:
+          left.lastMs == null
+            ? right.lastMs
+            : right.lastMs == null
+              ? left.lastMs
+              : Math.max(left.lastMs, right.lastMs),
+      };
+    }
+    warnings.push(`usage events unavailable for ${windowLabel(window)}: ${error.message}`);
+    return {
+      requestCount: 0,
+      activeDates: new Set<string>(),
+      firstMs: null,
+      lastMs: null,
+    };
+  }
 }
 
 export async function collectCursorApi(
   cookie: string,
   onProgress?: (fetched: number, total: number) => void
 ): Promise<CursorApiResult | null> {
-  const me = await api(cookie, "/api/auth/me");
-  const email: string | null = me?.email ?? null;
+  const warnings: string[] = [];
+  let email: string | null = null;
+  try {
+    const me = await api(cookie, "/api/auth/me");
+    email = me?.email ?? null;
+  } catch (error: any) {
+    warnings.push(`could not fetch account details: ${error.message}`);
+  }
 
   const startMs = Date.UTC(2023, 0, 1); // Cursor launched in 2023
   const endMs = Date.now();
@@ -154,67 +342,48 @@ export async function collectCursorApi(
     .sort((a, b) => a - b);
 
   // Aggregated: per-model tokens + cents, summed across the sub-windows.
-  let tokens = 0;
-  let cents = 0;
-  const models = new Set<string>();
+  const totals = { tokens: 0, cents: 0, models: new Set<string>() };
   for (let i = 0; i < bounds.length - 1; i++) {
     if (bounds[i] >= bounds[i + 1]) continue;
-    const agg = await api(cookie, "/api/dashboard/get-aggregated-usage-events", {
-      teamId: 0,
-      startDate: String(bounds[i]),
-      endDate: String(bounds[i + 1]),
-    });
-    for (const r of agg?.aggregations ?? []) {
-      tokens +=
-        Number(r.inputTokens ?? 0) +
-        Number(r.outputTokens ?? 0) +
-        Number(r.cacheReadTokens ?? 0) +
-        Number(r.cacheWriteTokens ?? 0);
-      cents += Number(r.totalCents ?? 0);
-      const m = String(r.modelIntent ?? r.model ?? "");
-      // Skip Cursor's service labels that aren't actual models.
-      if (m && !["unknown", "default", "premium", "agent_review"].includes(m))
-        models.add(m);
-    }
-  }
-  const window = {
-    teamId: 0,
-    startDate: String(startMs),
-    endDate: String(endMs),
-  };
-
-  // Events: paginate for request count + active-day set.
-  const activeDates = new Set<string>();
-  let requestCount = 0;
-  let firstMs: number | null = null;
-  let lastMs: number | null = null;
-  const pageSize = 1000;
-  let page = 1;
-  let total = 0;
-  for (; page <= 300; page++) {
-    const chunk = await api(
+    await collectAggregatedWindow(
       cookie,
-      "/api/dashboard/get-filtered-usage-events",
-      { ...window, page, pageSize }
+      { startMs: bounds[i], endMs: bounds[i + 1] },
+      totals,
+      warnings
     );
-    if (page === 1) total = Number(chunk?.totalUsageEventsCount ?? 0);
-    const events: any[] = chunk?.usageEventsDisplay ?? [];
-    if (events.length === 0) break;
-    requestCount += events.length;
-    for (const ev of events) {
-      const ts = Number(ev.timestamp ?? 0);
-      if (ts > 0) {
-        if (firstMs == null || ts < firstMs) firstMs = ts;
-        if (lastMs == null || ts > lastMs) lastMs = ts;
-        const d = toDateOnly(new Date(ts).toISOString());
-        if (d) activeDates.add(d);
-      }
-    }
-    onProgress?.(requestCount, total);
-    if (requestCount >= total) break;
   }
 
-  if (tokens === 0 && requestCount === 0) return null;
+  // Events: Cursor also rejects the all-time request intermittently, so fetch
+  // the same storage-safe windows independently. A bad window must not erase
+  // events gathered from the rest of the user's history.
+  const eventTotals: FilteredWindowResult = {
+    requestCount: 0,
+    activeDates: new Set<string>(),
+    firstMs: null,
+    lastMs: null,
+  };
+  for (let i = 0; i < bounds.length - 1; i++) {
+    if (bounds[i] >= bounds[i + 1]) continue;
+    const chunk = await collectFilteredWindow(
+      cookie,
+      { startMs: bounds[i], endMs: bounds[i + 1] },
+      onProgress,
+      warnings
+    );
+    eventTotals.requestCount += chunk.requestCount;
+    for (const date of chunk.activeDates) eventTotals.activeDates.add(date);
+    if (chunk.firstMs != null && (eventTotals.firstMs == null || chunk.firstMs < eventTotals.firstMs))
+      eventTotals.firstMs = chunk.firstMs;
+    if (chunk.lastMs != null && (eventTotals.lastMs == null || chunk.lastMs > eventTotals.lastMs))
+      eventTotals.lastMs = chunk.lastMs;
+  }
+
+  if (totals.tokens === 0 && eventTotals.requestCount === 0) {
+    if (warnings.length > 0) {
+      throw new Error(`Cursor API returned no usable data: ${warnings.join("; ")}`);
+    }
+    return null;
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   const msToDate = (ms: number | null) =>
@@ -222,14 +391,15 @@ export async function collectCursorApi(
 
   return {
     source: {
-      totalTokens: Math.round(tokens),
-      totalCostUsd: Math.round(cents) / 100,
-      requestCount,
-      activeDays: activeDates.size,
-      dateRange: { from: msToDate(firstMs), to: msToDate(lastMs) },
-      models: [...models].sort().slice(0, 50),
+      totalTokens: Math.round(totals.tokens),
+      totalCostUsd: Math.round(totals.cents) / 100,
+      requestCount: eventTotals.requestCount,
+      activeDays: eventTotals.activeDates.size,
+      dateRange: { from: msToDate(eventTotals.firstMs), to: msToDate(eventTotals.lastMs) },
+      models: [...totals.models].sort().slice(0, 50),
     },
-    activeDates,
+    activeDates: eventTotals.activeDates,
     email,
+    warnings,
   };
 }

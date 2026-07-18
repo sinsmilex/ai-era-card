@@ -181,7 +181,10 @@ Options:
           s.message(`Cursor: ${fetched}/${total} usage events`)
         );
         if (result) {
-          cursor = { ...result, warnings: [] };
+          cursor = result;
+          for (const warning of result.warnings) {
+            p.log.warn(`Cursor: ${warning}`);
+          }
           s.stop(
             `Cursor: ${fmt(result.source.totalTokens ?? 0)} tokens, ` +
               `${result.source.requestCount} events since ${result.source.dateRange.from}` +
@@ -191,7 +194,16 @@ Options:
           s.stop("Cursor: no usage found — skipping");
         }
       } catch (e: any) {
-        s.stop(`Cursor API failed (${e.message}) — falling back to CSV`);
+        s.stop(
+          interactive
+            ? `Cursor API failed (${e.message}) — falling back to CSV`
+            : `Cursor API failed (${e.message}) — Cursor skipped`
+        );
+        if (!interactive) {
+          p.log.error(
+            "Cursor was not included. Re-run without --yes to provide a CSV, or pass --cursor-csv <path>."
+          );
+        }
       }
     } else if (args["cursor-cookie"] !== undefined) {
       p.log.error("Cursor: could not resolve a session token from the given value");

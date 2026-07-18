@@ -6,7 +6,7 @@ import type { OpenRouterResult } from "./collectors/openrouter.js";
 import type { CursorResult } from "./collectors/cursorCsv.js";
 import type { CodexResult } from "./collectors/codex.js";
 
-export const CLI_VERSION = "0.1.2";
+export const CLI_VERSION = "0.1.3";
 
 export function buildPayload(opts: {
   claudeCode: ClaudeCodeResult | null;
