@@ -66,13 +66,31 @@ export const cursorSourceSchema = z.object({
   models,
 });
 
+// OpenAI Codex CLI — local ~/.codex/sessions JSONL. Same privacy shape as
+// Claude Code: aggregates only, no prompts/paths.
+export const codexSourceSchema = z.object({
+  tokensIn: tokens,
+  tokensOut: tokens,
+  cacheReadTokens: tokens,
+  reasoningTokens: tokens,
+  totalTokens: tokens,
+  estimatedCostUsd: costUsd.nullable(),
+  costConfidence: z.enum(["estimated", "partial"]),
+  sessionCount: count,
+  activeDays: count,
+  longestStreakDays: count,
+  firstActivityDate: dateOnly,
+  lastActivityDate: dateOnly,
+  models,
+});
+
 export const aggregateSchema = z.object({
   totalTokens: tokens,
   totalCostUsd: costUsd.nullable(),
   totalActiveDays: count,
   longestStreakDays: count,
   distinctModels: models,
-  sourceCount: z.number().int().min(1).max(3),
+  sourceCount: z.number().int().min(1).max(4),
   firstActivityDate: dateOnly,
   lastActivityDate: dateOnly,
 });
@@ -87,9 +105,10 @@ export const snapshotPayloadSchema = z
         claudeCode: claudeCodeSourceSchema.optional(),
         openrouter: openRouterSourceSchema.optional(),
         cursor: cursorSourceSchema.optional(),
+        codex: codexSourceSchema.optional(),
       })
       .refine(
-        (s) => s.claudeCode || s.openrouter || s.cursor,
+        (s) => s.claudeCode || s.openrouter || s.cursor || s.codex,
         "at least one source is required"
       ),
     aggregate: aggregateSchema,
@@ -106,5 +125,6 @@ export const snapshotPayloadSchema = z
 export type ClaudeCodeSource = z.infer<typeof claudeCodeSourceSchema>;
 export type OpenRouterSource = z.infer<typeof openRouterSourceSchema>;
 export type CursorSource = z.infer<typeof cursorSourceSchema>;
+export type CodexSource = z.infer<typeof codexSourceSchema>;
 export type Aggregate = z.infer<typeof aggregateSchema>;
 export type SnapshotPayload = z.infer<typeof snapshotPayloadSchema>;

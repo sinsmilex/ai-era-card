@@ -7,10 +7,10 @@ The CLI parses usage logs **locally** and uploads **aggregate numbers only**.
 
 - `packages/schema` — zod schema of the upload payload. This file is the
   privacy contract: it cannot represent prompts, code, paths, or project names.
-- `apps/cli` — `npx aieracard`. Collects Claude Code (local JSONL), Cursor
-  (all-time via your own cursor.com session, CSV export as fallback),
-  OpenRouter (API key); previews the exact JSON, uploads on confirmation,
-  prints a permanent card URL.
+- `apps/cli` — `npx aieracard`. Collects Claude Code + OpenAI Codex (local
+  JSONL), Cursor (all-time via your own cursor.com session, CSV fallback),
+  optional OpenRouter (API key); previews the exact JSON, uploads on
+  confirmation, prints a permanent card URL.
 - `apps/web` — Next.js app: `POST /api/snapshots`, card page `/s/[slug]`,
   dynamic OG image (the share unfurl), `/privacy`.
 

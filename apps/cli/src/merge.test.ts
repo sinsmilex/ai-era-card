@@ -82,6 +82,7 @@ describe("buildPayload", () => {
       claudeCode: claude({ totalTokens: 1000, estimatedCostUsd: null }),
       openrouter: null,
       cursor: cursor({ totalTokens: 500, totalCostUsd: null }),
+      codex: null,
       handle: null,
     });
 
@@ -95,6 +96,7 @@ describe("buildPayload", () => {
       claudeCode: claude({ totalTokens: 1000, estimatedCostUsd: null }),
       openrouter: openrouter({ totalTokens: 200, totalCostUsd: 3.5 }),
       cursor: cursor({ totalTokens: 100, totalCostUsd: 1.25 }),
+      codex: null,
       handle: "sinsmile",
     });
 
@@ -122,6 +124,7 @@ describe("buildPayload", () => {
         dates: ["2026-07-02"],
       }),
       cursor: null,
+      codex: null,
       handle: null,
     });
 

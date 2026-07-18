@@ -11,6 +11,7 @@ import {
 export function sourceLabels(p: SnapshotPayload): string[] {
   const labels: string[] = [];
   if (p.sources.claudeCode) labels.push("Claude Code");
+  if (p.sources.codex) labels.push("Codex");
   if (p.sources.cursor) labels.push("Cursor");
   if (p.sources.openrouter) labels.push("OpenRouter");
   return labels;

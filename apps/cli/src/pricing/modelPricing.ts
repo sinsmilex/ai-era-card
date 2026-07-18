@@ -39,12 +39,31 @@ export const MODEL_PRICING: Record<string, ModelRates> = {
   "claude-haiku-4-5": rates(1, 5),
   "claude-3-5-haiku": rates(0.8, 4),
   "claude-3-haiku": rates(0.25, 1.25),
+  // OpenAI / Codex CLI (USD per 1M; cache read ≈ 0.1× input via rates())
+  "gpt-5.4": rates(2.5, 15),
+  "gpt-5.3": rates(2.5, 15),
+  "gpt-5.2": rates(2.5, 15),
+  "gpt-5.1": rates(2.5, 15),
+  "gpt-5-mini": rates(0.4, 1.6),
+  "gpt-5-nano": rates(0.1, 0.4),
+  "gpt-5-codex": rates(2.5, 15),
+  "gpt-5": rates(2.5, 15),
+  "gpt-4.1-mini": rates(0.4, 1.6),
+  "gpt-4.1-nano": rates(0.1, 0.4),
+  "gpt-4.1": rates(2, 8),
+  "gpt-4o-mini": rates(0.15, 0.6),
+  "gpt-4o": rates(2.5, 10),
+  "o4-mini": rates(1.1, 4.4),
+  "o3-mini": rates(1.1, 4.4),
+  "o3": rates(2, 8),
 };
 
 const sortedKeys = Object.keys(MODEL_PRICING).sort((a, b) => b.length - a.length);
 
 export function ratesFor(modelId: string): ModelRates | null {
-  const normalized = modelId.replace(/^(anthropic\.|us\.anthropic\.)/, "");
+  const normalized = modelId
+    .replace(/^(anthropic\.|us\.anthropic\.|openai\/|openai\.)/, "")
+    .replace(/^models\//, "");
   for (const key of sortedKeys) {
     if (normalized.startsWith(key)) return MODEL_PRICING[key];
   }

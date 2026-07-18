@@ -17,6 +17,7 @@ import {
   collectCursorApi,
   resolveCursorCookie,
 } from "./collectors/cursorApi.js";
+import { collectCodex, codexSessionsRoots, type CodexResult } from "./collectors/codex.js";
 import { buildPayload, CLI_VERSION } from "./merge.js";
 
 const DEFAULT_ENDPOINT = "https://ai-era-card.vercel.app";
@@ -33,6 +34,7 @@ const { values: args } = parseArgs({
     "no-claude-code": { type: "boolean", default: false },
     "no-openrouter": { type: "boolean", default: false },
     "no-cursor": { type: "boolean", default: false },
+    "no-codex": { type: "boolean", default: false },
     handle: { type: "string" },
     endpoint: { type: "string" },
     open: { type: "boolean", default: false },
@@ -70,6 +72,7 @@ Options:
   --cursor-cookie <t>    Cursor web session token (auto-detected if omitted)
   --cursor-csv <path>    usage CSV export (fallback if the API path fails)
   --no-claude-code       skip Claude Code logs
+  --no-codex             skip OpenAI Codex CLI logs
   --no-openrouter        skip OpenRouter
   --no-cursor            skip Cursor
   --handle <name>        display name on the card (unverified)
@@ -98,6 +101,22 @@ Options:
       );
     } else {
       s.stop("Claude Code: no local logs found — skipping");
+    }
+  }
+
+  // --- Codex CLI ---
+  let codex: CodexResult | null = null;
+  if (!args["no-codex"]) {
+    const s = p.spinner();
+    s.start(`Scanning Codex logs (${codexSessionsRoots().join(", ")})`);
+    codex = await collectCodex();
+    if (codex) {
+      s.stop(
+        `Codex: ${fmt(codex.source.totalTokens)} tokens across ` +
+          `${codex.source.sessionCount} sessions (${codex.filesParsed} log files)`
+      );
+    } else {
+      s.stop("Codex: no local session logs found — skipping");
     }
   }
 
@@ -204,9 +223,9 @@ Options:
     }
   }
 
-  if (!claudeCode && !openrouter && !cursor) {
+  if (!claudeCode && !openrouter && !cursor && !codex) {
     bail(
-      "No usage sources found or supplied. Nothing to build a card from.\nTry --openrouter-key or --cursor-csv, or run Claude Code first."
+      "No usage sources found or supplied. Nothing to build a card from.\nTry Claude Code, Codex CLI, --openrouter-key, or --cursor-csv."
     );
   }
 
@@ -225,6 +244,7 @@ Options:
     claudeCode,
     openrouter,
     cursor,
+    codex,
     handle,
   });
   const parsed = snapshotPayloadSchema.safeParse(payload);

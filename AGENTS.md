@@ -37,13 +37,21 @@ pnpm monorepo:
   no field for them. Both the CLI and the API route validate against this
   same schema, so drift between "what we promise" and "what we accept" is
   structurally impossible.
-- `apps/cli` (`aieracard` on npm) — collects usage from three sources, all
-  parsed **locally**:
+- `apps/cli` (`aieracard` on npm) — collects usage from local + optional
+  remote sources:
   - **Claude Code**: reads `~/.claude/projects/**/*.jsonl` directly. No
     cost field in the logs — cost is computed from a static per-model
     pricing table (`src/pricing/modelPricing.ts`, mirrors ccusage's
     numbers). Streaming can rewrite the same message across multiple JSONL
     lines — the collector dedupes on `messageId:requestId`.
+  - **Codex** (OpenAI Codex CLI): reads `~/.codex/sessions/**/*.jsonl`
+    (+ `archived_sessions/`, override via `CODEX_HOME`).
+    `event_msg` / `token_count` rows expose **cumulative**
+    `total_token_usage` — the collector diffs that field (not
+    `last_token_usage`) so duplicate snapshots don't double-count.
+    Model comes from preceding `turn_context`. Cost estimated from the
+    same pricing table (OpenAI model ids). Token events only exist in
+    logs from Codex builds after 2025-09.
   - **Cursor**: the interesting one. There's no public API for individual
     (non-Enterprise) accounts. `src/collectors/cursorApi.ts` calls Cursor's
     own dashboard endpoints (`cursor.com/api/dashboard/get-aggregated-usage-events`,
@@ -59,9 +67,10 @@ pnpm monorepo:
     request body causes a 500; omit it. CSV export
     (`src/collectors/cursorCsv.ts`) is the documented fallback, used
     automatically if the API path throws.
-  - **OpenRouter**: official REST API, `/credits` (all-time spend) +
-    `/activity` (30-day windowed token/model breakdown — the payload marks
-    this `windowDays: 30` explicitly rather than implying all-time).
+  - **OpenRouter** (optional): official REST API, `/credits` (all-time
+    spend) + `/activity` (30-day windowed tokens). All-time OR spend is
+    **not** rolled into aggregate card cost. Unverified against a live
+    key in this environment.
   - The CLI always shows the exact JSON before uploading and requires
     confirmation (`--dry-run` skips upload entirely; `--force` skips the
     confirmation prompt for scripting).

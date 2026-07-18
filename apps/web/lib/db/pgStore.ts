@@ -15,11 +15,13 @@ export class PgStore implements SnapshotStore {
         has_claude_code boolean NOT NULL DEFAULT false,
         has_openrouter boolean NOT NULL DEFAULT false,
         has_cursor boolean NOT NULL DEFAULT false,
+        has_codex boolean NOT NULL DEFAULT false,
         total_tokens bigint NOT NULL,
         payload jsonb NOT NULL,
         ip_hash text,
         view_count int NOT NULL DEFAULT 0
       );
+      ALTER TABLE snapshots ADD COLUMN IF NOT EXISTS has_codex boolean NOT NULL DEFAULT false;
       CREATE INDEX IF NOT EXISTS snapshots_total_tokens_idx ON snapshots (total_tokens DESC);
     `);
     return new PgStore(pool);
@@ -29,14 +31,15 @@ export class PgStore implements SnapshotStore {
     const p = rec.payload;
     await this.pool.query(
       `INSERT INTO snapshots
-        (slug, schema_version, has_claude_code, has_openrouter, has_cursor, total_tokens, payload, ip_hash)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        (slug, schema_version, has_claude_code, has_openrouter, has_cursor, has_codex, total_tokens, payload, ip_hash)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         rec.slug,
         p.schemaVersion,
         Boolean(p.sources.claudeCode),
         Boolean(p.sources.openrouter),
         Boolean(p.sources.cursor),
+        Boolean(p.sources.codex),
         p.aggregate.totalTokens,
         JSON.stringify(p),
         rec.ipHash,

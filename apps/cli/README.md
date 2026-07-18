@@ -9,9 +9,10 @@ npx aieracard
 The CLI collects usage **locally** from:
 
 - **Claude Code** — local JSONL logs (`~/.claude/projects`), fully automatic
+- **Codex** — local JSONL under `~/.codex/sessions` (override with `CODEX_HOME`)
 - **Cursor** — all-time usage via your own cursor.com session (token resolved
   locally, sent only to cursor.com); CSV export as fallback
-- **OpenRouter** — management API key (read-only `/credits` + `/activity`).
+- **OpenRouter** — optional management API key (`/credits` + `/activity`).
   Tokens are last 30 days; all-time spend stays on the source object and is
   **not** rolled into the card's aggregate "compute spent"
 
@@ -33,7 +34,7 @@ that unfurls into a stats card when shared.
 --openrouter-key <k>   OpenRouter API key (or OPENROUTER_API_KEY env)
 --cursor-cookie <t>    Cursor web session token (auto-detected if omitted)
 --cursor-csv <path>    usage CSV export (fallback if the API path fails)
---no-claude-code / --no-openrouter / --no-cursor
+--no-claude-code / --no-codex / --no-openrouter / --no-cursor
 --handle <name>        display name on the card (unverified)
 --open                 open the card URL in your browser
 ```
