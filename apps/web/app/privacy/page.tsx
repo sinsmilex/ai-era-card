@@ -27,7 +27,8 @@ export default function Privacy() {
         or timestamps finer than a calendar date. The CLI shows you the full
         payload and asks for confirmation before uploading; <code>--dry-run</code>{" "}
         never uploads at all. Your IP is not stored — only a salted daily hash
-        used for rate limiting.
+        used for rate limiting. A Cursor session token, when used, is read
+        locally and sent only to <code>cursor.com</code> — never to our API.
       </p>
       <p style={{ color: "#8b949e" }}>
         Cards are self-reported statistics, like any year-in-review.

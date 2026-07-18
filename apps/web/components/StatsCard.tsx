@@ -147,6 +147,21 @@ export function StatsCard({
         }}
       >
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {sourceLabels(payload).map((label) => (
+            <span
+              key={label}
+              style={{
+                fontFamily: t.mono,
+                fontSize: 11,
+                color: t.accent,
+                background: t.chipBg,
+                borderRadius: 999,
+                padding: "4px 10px",
+              }}
+            >
+              {label}
+            </span>
+          ))}
           {topModels.map((m) => (
             <span
               key={m}
@@ -181,6 +196,23 @@ export function StatsCard({
           {host}/s/{slug}
         </span>
       </div>
+
+      {payload.sources.openrouter && (
+        <div
+          style={{
+            marginTop: 16,
+            fontSize: 11,
+            color: t.muted,
+            lineHeight: 1.45,
+          }}
+        >
+          OpenRouter tokens are last 30 days. All-time OpenRouter spend
+          {payload.sources.openrouter.totalCostUsd != null
+            ? ` ($${payload.sources.openrouter.totalCostUsd})`
+            : ""}{" "}
+          is not included in compute spent above.
+        </div>
+      )}
     </div>
   );
 }

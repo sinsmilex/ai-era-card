@@ -119,15 +119,30 @@ Options:
       s.start("Validating OpenRouter key");
       if (await validateOpenRouterKey(key)) {
         s.message("Fetching OpenRouter usage");
-        openrouter = await collectOpenRouter(key);
-        s.stop(
-          openrouter
-            ? `OpenRouter: $${openrouter.source.totalCostUsd} all-time, ` +
-                `${fmt(openrouter.source.totalTokens)} tokens (last 30 days)`
-            : "OpenRouter: no usage found — skipping"
-        );
+        try {
+          openrouter = await collectOpenRouter(key);
+          for (const w of openrouter?.warnings ?? []) {
+            p.log.warn(`OpenRouter: ${w}`);
+          }
+          if (openrouter) {
+            const spend =
+              openrouter.source.totalCostUsd != null
+                ? `$${openrouter.source.totalCostUsd} all-time spend (not rolled into card total)`
+                : "spend unknown";
+            s.stop(
+              `OpenRouter: ${fmt(openrouter.source.totalTokens)} tokens (last 30 days), ${spend}`
+            );
+          } else {
+            s.stop("OpenRouter: no usage found — skipping");
+          }
+        } catch (e: any) {
+          openrouter = null;
+          s.stop(`OpenRouter: ${e.message} — skipping`);
+        }
       } else {
-        s.stop("OpenRouter: key invalid — skipping");
+        s.stop(
+          "OpenRouter: key invalid or not a management key — skipping"
+        );
       }
     }
   }

@@ -57,12 +57,13 @@ function cursor(opts: {
 
 function openrouter(opts: {
   totalTokens: number;
-  totalCostUsd: number;
+  totalCostUsd: number | null;
   models?: string[];
   dates?: string[];
 }): OpenRouterResult {
   const dates = opts.dates ?? ["2026-07-03"];
   return {
+    warnings: [],
     activeDates: new Set(dates),
     source: {
       totalTokens: opts.totalTokens,
@@ -89,7 +90,7 @@ describe("buildPayload", () => {
     expect(snapshotPayloadSchema.safeParse(payload).success).toBe(true);
   });
 
-  it("sums known costs and ignores null costs (never coerces null to 0)", () => {
+  it("sums Claude/Cursor costs, ignores nulls, excludes OpenRouter all-time spend", () => {
     const payload = buildPayload({
       claudeCode: claude({ totalTokens: 1000, estimatedCostUsd: null }),
       openrouter: openrouter({ totalTokens: 200, totalCostUsd: 3.5 }),
@@ -97,7 +98,9 @@ describe("buildPayload", () => {
       handle: "sinsmile",
     });
 
-    expect(payload.aggregate.totalCostUsd).toBe(4.75);
+    // OpenRouter $3.5 is all-time — kept on the source, not in aggregate.
+    expect(payload.aggregate.totalCostUsd).toBe(1.25);
+    expect(payload.sources.openrouter?.totalCostUsd).toBe(3.5);
     expect(payload.aggregate.totalTokens).toBe(1300);
     expect(payload.aggregate.sourceCount).toBe(3);
     expect(payload.display.handle).toBe("sinsmile");

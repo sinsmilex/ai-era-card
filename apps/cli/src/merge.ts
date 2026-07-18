@@ -5,7 +5,7 @@ import type { ClaudeCodeResult } from "./collectors/claudeCode.js";
 import type { OpenRouterResult } from "./collectors/openrouter.js";
 import type { CursorResult } from "./collectors/cursorCsv.js";
 
-export const CLI_VERSION = "0.1.0";
+export const CLI_VERSION = "0.1.1";
 
 export function buildPayload(opts: {
   claudeCode: ClaudeCodeResult | null;
@@ -25,11 +25,12 @@ export function buildPayload(opts: {
     (openrouter?.source.totalTokens ?? 0) +
     (cursor?.source.totalTokens ?? 0);
 
-  // null (unknown) is only coerced to a number if at least one source
-  // reported a real cost — otherwise the aggregate stays null, not $0.
+  // null (unknown) stays null — never coerced to $0.
+  // OpenRouter spend is all-time (/credits) while its tokens are last-30-day
+  // (/activity); mixing that cost into aggregate "compute spent" would lie.
+  // It remains on sources.openrouter.totalCostUsd for the JSON preview.
   const costs = [
     claudeCode?.source.estimatedCostUsd,
-    openrouter?.source.totalCostUsd,
     cursor?.source.totalCostUsd,
   ].filter((c): c is number => typeof c === "number");
   const totalCostUsd =

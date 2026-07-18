@@ -11,7 +11,9 @@ The CLI collects usage **locally** from:
 - **Claude Code** — local JSONL logs (`~/.claude/projects`), fully automatic
 - **Cursor** — all-time usage via your own cursor.com session (token resolved
   locally, sent only to cursor.com); CSV export as fallback
-- **OpenRouter** — via your API key (read-only endpoints)
+- **OpenRouter** — management API key (read-only `/credits` + `/activity`).
+  Tokens are last 30 days; all-time spend stays on the source object and is
+  **not** rolled into the card's aggregate "compute spent"
 
 It then shows you the **exact JSON** that would be uploaded — aggregate
 numbers only: token counts, cost totals, active days, streaks, model names.

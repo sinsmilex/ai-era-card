@@ -1,6 +1,6 @@
 {
   "name": "aieracard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate a shareable card from your AI tool usage. Local parsing, aggregate numbers only.",
   "type": "module",
   "bin": {
@@ -11,6 +11,13 @@
     "README.md"
   ],
   "license": "MIT",
+  "homepage": "https://ai-era-card.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinsmilex/ai-era-card.git",
+    "directory": "apps/cli"
+  },
+  "bugs": "https://github.com/sinsmilex/ai-era-card/issues",
   "keywords": [
     "ai",
     "usage",

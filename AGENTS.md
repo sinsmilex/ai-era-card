@@ -106,21 +106,17 @@ your own memory of a previous session.
 
 ## Known gaps / next up
 
-- **OpenRouter collector unverified against a live account** — written
-  against the documented API shape but never run against a real key (the
-  Cursor collector needed real-world correction after being written from
-  docs alone — split-date windows, dropping `userId`, session-vs-other JWT
-  selection — none of which was in the docs; treat OpenRouter with the
-  same suspicion until someone runs `--dry-run` with a real
-  `OPENROUTER_API_KEY`).
-- **No CI.** Nothing runs typecheck/build on push or PR — a broken commit
-  to `main` auto-deploys straight to production. Cheapest fix: a GitHub
-  Actions workflow running `pnpm -r build` (covers `tsc --noEmit` for
-  schema/cli plus `next build` for web).
-- **No automated tests.** The JSONL/CSV parsers were validated by hand
-  against real logs and a live account, not by a test suite — a future
-  refactor has no safety net. `apps/cli/src/collectors/*` are the highest-
-  value targets (pure functions, easy to fixture).
+- **OpenRouter collector still needs a live-key dry-run.** Hardened against
+  the documented `/credits` + `/activity` shapes (no silent `.catch`,
+  all-time spend kept off aggregate totals, models deduped). Still run
+  `npx aieracard --dry-run` with a real management `OPENROUTER_API_KEY`
+  once — Cursor taught us docs ≠ production.
+- **No CI.** Nothing runs typecheck/build/tests on push or PR — a broken
+  commit to `main` auto-deploys straight to production. Cheapest fix: a
+  GitHub Actions workflow running `pnpm test && pnpm -r build`.
+- **Collector unit tests still thin.** Schema + `buildPayload` merge are
+  covered (`pnpm test`); JSONL/CSV/Cursor API parsers were validated by
+  hand and remain the highest-value remaining fixtures.
 - **Undocumented Cursor endpoints can break silently.** No monitoring; if
   Cursor changes `get-aggregated-usage-events`/`get-filtered-usage-events`,
   the CLI just falls back to CSV without anyone finding out until a user

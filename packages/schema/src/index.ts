@@ -46,8 +46,11 @@ export const claudeCodeSourceSchema = z.object({
 });
 
 export const openRouterSourceSchema = z.object({
+  // Tokens/requests/models are last-30-day (/activity). totalCostUsd is
+  // all-time spend from /credits — nullable if that endpoint fails.
+  // Aggregate card totals intentionally omit this cost (mixed windows).
   totalTokens: tokens,
-  totalCostUsd: costUsd,
+  totalCostUsd: costUsd.nullable(),
   requestCount: count,
   activeDays: count,
   windowDays: z.literal(30),

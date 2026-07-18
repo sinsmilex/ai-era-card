@@ -8,3 +8,6 @@ dist/
 
 .vercel
 .env*
+
+# Editor-fetched skill/reference docs (Cursor, etc.) — tool cache, not project source
+.agents/
