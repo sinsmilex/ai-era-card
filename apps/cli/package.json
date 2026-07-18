@@ -1,0 +1,30 @@
+{
+  "name": "aieracard",
+  "version": "0.1.0",
+  "description": "Generate a shareable card from your AI tool usage. Local parsing, aggregate numbers only.",
+  "type": "module",
+  "bin": {
+    "aieracard": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "csv-parse": "^5.6.0"
+  },
+  "devDependencies": {
+    "@aieracard/schema": "workspace:*",
+    "@types/node": "^22",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
+  }
+}

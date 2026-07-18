@@ -1,0 +1,83 @@
+import type { SnapshotPayload } from "@aieracard/schema";
+import { SCHEMA_VERSION } from "@aieracard/schema";
+import { longestStreak, maxDate, minDate, todayDateOnly } from "./dates.js";
+import type { ClaudeCodeResult } from "./collectors/claudeCode.js";
+import type { OpenRouterResult } from "./collectors/openrouter.js";
+import type { CursorResult } from "./collectors/cursorCsv.js";
+
+export const CLI_VERSION = "0.1.0";
+
+export function buildPayload(opts: {
+  claudeCode: ClaudeCodeResult | null;
+  openrouter: OpenRouterResult | null;
+  cursor: CursorResult | null;
+  handle: string | null;
+}): SnapshotPayload {
+  const { claudeCode, openrouter, cursor, handle } = opts;
+
+  const allDates = new Set<string>();
+  for (const r of [claudeCode, openrouter, cursor]) {
+    if (r) for (const d of r.activeDates) allDates.add(d);
+  }
+
+  const totalTokens =
+    (claudeCode?.source.totalTokens ?? 0) +
+    (openrouter?.source.totalTokens ?? 0) +
+    (cursor?.source.totalTokens ?? 0);
+
+  // null (unknown) is only coerced to a number if at least one source
+  // reported a real cost — otherwise the aggregate stays null, not $0.
+  const costs = [
+    claudeCode?.source.estimatedCostUsd,
+    openrouter?.source.totalCostUsd,
+    cursor?.source.totalCostUsd,
+  ].filter((c): c is number => typeof c === "number");
+  const totalCostUsd =
+    costs.length > 0
+      ? Math.round(costs.reduce((a, b) => a + b, 0) * 100) / 100
+      : null;
+
+  const distinctModels = new Set<string>([
+    ...(claudeCode?.source.models ?? []),
+    ...(openrouter?.source.models ?? []),
+    ...(cursor?.source.models ?? []),
+  ]);
+
+  let first: string | null = null;
+  let last: string | null = null;
+  if (claudeCode) {
+    first = minDate(first, claudeCode.source.firstActivityDate);
+    last = maxDate(last, claudeCode.source.lastActivityDate);
+  }
+  if (cursor) {
+    first = minDate(first, cursor.source.dateRange.from);
+    last = maxDate(last, cursor.source.dateRange.to);
+  }
+  for (const d of openrouter?.activeDates ?? []) {
+    first = minDate(first, d);
+    last = maxDate(last, d);
+  }
+  const today = todayDateOnly();
+
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    generatedAt: today,
+    cliVersion: CLI_VERSION,
+    sources: {
+      ...(claudeCode ? { claudeCode: claudeCode.source } : {}),
+      ...(openrouter ? { openrouter: openrouter.source } : {}),
+      ...(cursor ? { cursor: cursor.source } : {}),
+    },
+    aggregate: {
+      totalTokens,
+      totalCostUsd,
+      totalActiveDays: allDates.size,
+      longestStreakDays: longestStreak(allDates),
+      distinctModels: [...distinctModels].sort().slice(0, 50),
+      sourceCount: [claudeCode, openrouter, cursor].filter(Boolean).length,
+      firstActivityDate: first ?? today,
+      lastActivityDate: last ?? today,
+    },
+    display: { handle },
+  };
+}

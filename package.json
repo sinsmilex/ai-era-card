@@ -1,0 +1,10 @@
+{
+  "name": "ai-era-card",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter web dev",
+    "cli": "pnpm --filter aieracard start"
+  },
+  "packageManager": "pnpm@9.14.3"
+}
