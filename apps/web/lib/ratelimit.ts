@@ -11,14 +11,17 @@ let upstash: import("@upstash/ratelimit").Ratelimit | null | undefined;
 
 async function getUpstash() {
   if (upstash !== undefined) return upstash;
-  if (
-    process.env.UPSTASH_REDIS_REST_URL &&
-    process.env.UPSTASH_REDIS_REST_TOKEN
-  ) {
+  // Vercel Marketplace Upstash sets KV_REST_API_*; self-serve Upstash
+  // dashboards usually set UPSTASH_REDIS_REST_*. Accept either.
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+  if (url && token) {
     const { Ratelimit } = await import("@upstash/ratelimit");
     const { Redis } = await import("@upstash/redis");
     upstash = new Ratelimit({
-      redis: Redis.fromEnv(),
+      redis: new Redis({ url, token }),
       limiter: Ratelimit.slidingWindow(MAX_PER_WINDOW, "1 h"),
       prefix: "aieracard",
     });
