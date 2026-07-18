@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getStore } from "@/lib/db";
-import { buildMosaic } from "@/lib/mosaic";
+import { buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
@@ -11,7 +11,7 @@ import {
 } from "@/lib/format";
 
 // The OG image is the viral mechanic — Slack/X/Discord unfurl.
-// Flexbox-only CSS (Satori). Shares eraRank + mosaic with StatsCard.
+// Flexbox-only CSS (Satori). Shares rank + territory silhouette with StatsCard.
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -52,7 +52,7 @@ export default async function OgImage({
   const palette = eraPalette(p);
   const rank = eraRank(p);
   const milestones = eraMilestones(p);
-  const mosaic = buildMosaic(p, 70);
+  const building = buildBuilding(p);
   const host = appUrl().replace(/^https?:\/\//, "");
 
   const metrics = [
@@ -85,20 +85,22 @@ export default async function OgImage({
             right: 40,
             top: 36,
             display: "flex",
-            flexWrap: "wrap",
-            width: 10 * 28,
-            gap: 5,
+          width: 265,
+          height: 238,
             opacity: 0.95,
           }}
         >
-          {mosaic.map((c, i) => (
+          {building.map((block, i) => (
             <div
               key={i}
               style={{
+                position: "absolute",
+                left: block.x * 27,
+                top: block.y * 27,
                 width: 22,
                 height: 22,
                 borderRadius: 4,
-                background: c.color,
+                background: block.color,
                 display: "flex",
               }}
             />

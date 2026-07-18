@@ -139,10 +139,13 @@ your own memory of a previous session.
 
 - Every number that reaches a user (CLI output, card, OG image) is
   formatted through `fmtTokens`/`fmtUsd`/etc. — never raw floats.
-- The mosaic (`apps/web/lib/mosaic.ts`) is deterministic: same payload →
-  same pattern, via a seeded PRNG from the aggregate stats. Don't swap in
-  `Math.random()` — the point is a stats-derived "territory," and it's the
-  seed of the eventual phase-2 map.
+- The mosaic/building (`apps/web/lib/mosaic.ts`) is deterministic: same
+  aggregate payload → same pattern and stepped silhouette, via a seeded PRNG.
+  Don't swap in `Math.random()` — this personal territory geometry is the
+  seed of the eventual phase-2 atlas, not a random decoration. Its eight
+  levels use all-time context tokens (including reported cache tokens) and
+  extend from Foundation (<25M) through Apex (100B+), leaving room for
+  future agent-scale usage. Do not start a map page before its phase gate.
 - Cost fields are `number | null`, never coerced to `0` — a `null` cost
   means "we don't know," and displaying `$0` would misrepresent that.
 - Anything that could carry PII/content (project names, file paths,

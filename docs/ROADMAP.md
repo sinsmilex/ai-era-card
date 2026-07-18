@@ -75,6 +75,14 @@ it's our strongest differentiator: territory earned by real work, not
 bought. The mosaic on today's card is already a deterministic,
 stats-seeded pattern — deliberately, so it can become this.
 
+- **Territory baseline (now).** The card and OG image render a deterministic
+  stepped building silhouette from aggregate-only stats. Its level comes from
+  all-time context tokens (including cache tokens where reported), with broad
+  headroom bands: Foundation (<25M), Studio (25–150M), Foundry (150–750M),
+  Tower (750M–2.5B), Citadel (2.5–7.5B), Arcology (7.5–20B), Landmark
+  (20–100B), and Apex (100B+). This is a status marker, not XP; the same
+  deterministic geometry is the personal territory seed that a future atlas
+  will place on a shared plot.
 - **Stage T1 — Territory (single-player, no cold start).** The mosaic
   grows into a proper generative "city block" render of *your* stats:
   districts = models/sources, building height = volume, lights = streaks.

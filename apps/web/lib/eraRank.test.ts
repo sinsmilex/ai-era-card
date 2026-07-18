@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SnapshotPayload } from "@aieracard/schema";
 import { eraMilestones, eraPalette, eraRank } from "./eraRank";
+import { buildBuilding } from "./mosaic";
 
 function payload(tokens: number, extras: Partial<SnapshotPayload["aggregate"]> = {}): SnapshotPayload {
   return {
@@ -41,19 +42,26 @@ function payload(tokens: number, extras: Partial<SnapshotPayload["aggregate"]> =
 }
 
 describe("eraRank", () => {
-  it("assigns Epoch at 1B+ tokens", () => {
+  it("keeps 1.5B in the mid-ladder Tower band", () => {
     const r = eraRank(payload(1_500_000_000));
-    expect(r.level).toBe(5);
-    expect(r.name).toBe("Epoch");
-    expect(r.title).toBe("L5 · EPOCH");
-    expect(r.nextLabel).toBeNull();
+    expect(r.level).toBe(4);
+    expect(r.name).toBe("Tower");
+    expect(r.title).toBe("L4 · TOWER");
+    expect(r.nextLabel).toContain("Citadel");
   });
 
-  it("assigns Foundry in the 100M band", () => {
-    const r = eraRank(payload(120_000_000));
+  it("assigns Foundry in the 150M–750M band", () => {
+    const r = eraRank(payload(200_000_000));
     expect(r.level).toBe(3);
     expect(r.name).toBe("Foundry");
-    expect(r.nextLabel).toContain("Citadel");
+    expect(r.nextLabel).toContain("Tower");
+  });
+
+  it("reserves Apex for 100B+ token usage", () => {
+    const r = eraRank(payload(100_000_000_000));
+    expect(r.level).toBe(8);
+    expect(r.name).toBe("Apex");
+    expect(r.nextLabel).toBeNull();
   });
 
   it("lists 1B club milestone", () => {
@@ -66,5 +74,12 @@ describe("eraRank", () => {
     const a = eraPalette(payload(1_500_000_000));
     const b = eraPalette(payload(1_500_000_000));
     expect(a.id).toBe(b.id);
+  });
+
+  it("grows a deterministic territory silhouette with rank", () => {
+    const foundation = buildBuilding(payload(1_000_000));
+    const apex = buildBuilding(payload(100_000_000_000));
+    expect(buildBuilding(payload(1_000_000))).toEqual(foundation);
+    expect(apex.length).toBeGreaterThan(foundation.length);
   });
 });

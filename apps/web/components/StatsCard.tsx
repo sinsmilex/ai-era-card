@@ -1,5 +1,5 @@
 import type { SnapshotPayload } from "@aieracard/schema";
-import { buildMosaic } from "@/lib/mosaic";
+import { buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   fmtMonthYear,
@@ -30,7 +30,7 @@ export function StatsCard({
   const palette = eraPalette(payload);
   const rank = eraRank(payload);
   const milestones = eraMilestones(payload);
-  const mosaic = buildMosaic(payload, 60);
+  const building = buildBuilding(payload);
   const sources = sourceLabels(payload);
 
   const metrics: Array<{ value: string; label: string }> = [
@@ -58,7 +58,7 @@ export function StatsCard({
         color: palette.ink,
       }}
     >
-      {/* Territory field */}
+      {/* Deterministic personal territory landmark. */}
       <div
         aria-hidden
         style={{
@@ -75,21 +75,23 @@ export function StatsCard({
           position: "absolute",
           right: -8,
           top: -8,
-          display: "grid",
-          gridTemplateColumns: "repeat(10, 14px)",
-          gap: 4,
+          width: 176,
+          height: 158,
           opacity: 0.9,
           transform: "rotate(-2deg)",
         }}
       >
-        {mosaic.map((c, i) => (
+        {building.map((block, i) => (
           <div
             key={i}
             style={{
+              position: "absolute",
+              left: block.x * 18,
+              top: block.y * 18,
               width: 14,
               height: 14,
               borderRadius: 3,
-              background: c.color,
+              background: block.color,
             }}
           />
         ))}

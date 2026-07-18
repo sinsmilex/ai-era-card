@@ -30,12 +30,18 @@ export interface EraPalette {
   mosaicIdle: string[];
 }
 
+// All-time context tokens, including cache tokens when a source reports them.
+// These intentionally broad, roughly logarithmic bands leave room for agent
+// workflows to grow without turning today's heavy users into the final tier.
 const RANKS: Array<{ level: number; name: string; minTokens: number }> = [
-  { level: 1, name: "Trace", minTokens: 0 },
-  { level: 2, name: "Circuit", minTokens: 10_000_000 },
-  { level: 3, name: "Foundry", minTokens: 100_000_000 },
-  { level: 4, name: "Citadel", minTokens: 500_000_000 },
-  { level: 5, name: "Epoch", minTokens: 1_000_000_000 },
+  { level: 1, name: "Foundation", minTokens: 0 },
+  { level: 2, name: "Studio", minTokens: 25_000_000 },
+  { level: 3, name: "Foundry", minTokens: 150_000_000 },
+  { level: 4, name: "Tower", minTokens: 750_000_000 },
+  { level: 5, name: "Citadel", minTokens: 2_500_000_000 },
+  { level: 6, name: "Arcology", minTokens: 7_500_000_000 },
+  { level: 7, name: "Landmark", minTokens: 20_000_000_000 },
+  { level: 8, name: "Apex", minTokens: 100_000_000_000 },
 ];
 
 const PALETTES: EraPalette[] = [
@@ -148,7 +154,13 @@ export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
     payload.sources.openrouter,
   ].filter(Boolean).length;
   const out: EraMilestone[] = [];
-  if (a.totalTokens >= 1_000_000_000)
+  if (a.totalTokens >= 100_000_000_000)
+    out.push({ id: "100b", label: "100B tokens" });
+  else if (a.totalTokens >= 20_000_000_000)
+    out.push({ id: "20b", label: "20B tokens club" });
+  else if (a.totalTokens >= 2_500_000_000)
+    out.push({ id: "2-5b", label: "2.5B tokens" });
+  else if (a.totalTokens >= 1_000_000_000)
     out.push({ id: "1b", label: "1B tokens club" });
   else if (a.totalTokens >= 100_000_000)
     out.push({ id: "100m", label: "100M tokens" });
