@@ -1,15 +1,13 @@
 import type { SnapshotPayload } from "@aieracard/schema";
+import { eraPalette } from "./eraRank";
 
 // Deterministic "city blocks" mosaic derived from the user's stats.
 // Same payload → same pattern; more usage → denser, brighter blocks.
-// This is the seed of the future map: the card background IS your territory.
+// Palette is stats-seeded so every card feels personally themed.
 
 export interface MosaicCell {
   color: string;
 }
-
-const ACTIVE_COLORS = ["#1D9E75", "#5DCAA5", "#534AB7", "#7F77DD"];
-const IDLE_COLORS = ["#22272e", "#2d333b"];
 
 function mulberry32(seed: number) {
   let a = seed >>> 0;
@@ -24,7 +22,7 @@ function mulberry32(seed: number) {
 
 export function buildMosaic(
   payload: SnapshotPayload,
-  cells = 32
+  cells = 48
 ): MosaicCell[] {
   const a = payload.aggregate;
   const seed =
@@ -33,14 +31,15 @@ export function buildMosaic(
     a.distinctModels.length * 131 +
     a.longestStreakDays * 17;
   const rnd = mulberry32(seed);
+  const palette = eraPalette(payload);
 
-  // Density scales with log of total tokens: 1M → ~35%, 1B → ~75%.
+  // Density scales with log of total tokens: 1M → ~35%, 1B → ~80%.
   const magnitude = Math.log10(Math.max(a.totalTokens, 1));
-  const density = Math.min(0.85, Math.max(0.2, (magnitude - 4) / 6.5));
+  const density = Math.min(0.88, Math.max(0.22, (magnitude - 4) / 6.2));
 
   return Array.from({ length: cells }, () => {
     const active = rnd() < density;
-    const palette = active ? ACTIVE_COLORS : IDLE_COLORS;
-    return { color: palette[Math.floor(rnd() * palette.length)] };
+    const colors = active ? palette.mosaicActive : palette.mosaicIdle;
+    return { color: colors[Math.floor(rnd() * colors.length)] };
   });
 }

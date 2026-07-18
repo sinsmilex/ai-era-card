@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getStore } from "@/lib/db";
 import { buildMosaic } from "@/lib/mosaic";
-import { cardTheme as t } from "@/components/cardTheme";
+import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
   fmtMonthYear,
@@ -10,9 +10,8 @@ import {
   warAndPeaceEquivalent,
 } from "@/lib/format";
 
-// The OG image is the viral mechanic — this is what Slack/X/Discord render.
-// Satori supports a CSS subset (flexbox only, no grid), so this is a second,
-// simplified implementation of StatsCard sharing cardTheme.
+// The OG image is the viral mechanic — Slack/X/Discord unfurl.
+// Flexbox-only CSS (Satori). Shares eraRank + mosaic with StatsCard.
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -36,8 +35,8 @@ export default async function OgImage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: t.bg,
-            color: t.muted,
+            background: "#101418",
+            color: "#8b949e",
             fontSize: 48,
           }}
         >
@@ -50,16 +49,19 @@ export default async function OgImage({
 
   const p = rec.payload;
   const a = p.aggregate;
-  const mosaic = buildMosaic(p, 40);
+  const palette = eraPalette(p);
+  const rank = eraRank(p);
+  const milestones = eraMilestones(p);
+  const mosaic = buildMosaic(p, 70);
   const host = appUrl().replace(/^https?:\/\//, "");
 
   const metrics = [
     a.totalCostUsd != null
-      ? { value: fmtUsd(a.totalCostUsd), label: "compute spent" }
-      : { value: fmtTokens(a.totalTokens), label: "tokens total" },
+      ? { value: fmtUsd(a.totalCostUsd), label: "compute" }
+      : { value: fmtTokens(a.totalTokens), label: "tokens" },
     { value: String(a.totalActiveDays), label: "active days" },
-    { value: String(a.longestStreakDays), label: "day streak" },
-    { value: String(a.distinctModels.length), label: "models used" },
+    { value: String(a.longestStreakDays), label: "streak" },
+    { value: String(a.distinctModels.length), label: "models" },
   ];
 
   return new ImageResponse(
@@ -70,31 +72,34 @@ export default async function OgImage({
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: t.bg,
-          padding: "56px 72px",
+          background: palette.bg,
+          padding: "52px 64px",
           position: "relative",
           fontFamily: "monospace",
+          color: palette.ink,
         }}
       >
         <div
           style={{
             position: "absolute",
-            right: 64,
-            top: 56,
+            right: 40,
+            top: 36,
             display: "flex",
             flexWrap: "wrap",
-            width: 8 * 26,
-            gap: 6,
+            width: 10 * 28,
+            gap: 5,
+            opacity: 0.95,
           }}
         >
           {mosaic.map((c, i) => (
             <div
               key={i}
               style={{
-                width: 20,
-                height: 20,
+                width: 22,
+                height: 22,
                 borderRadius: 4,
                 background: c.color,
+                display: "flex",
               }}
             />
           ))}
@@ -103,22 +108,46 @@ export default async function OgImage({
         <div
           style={{
             display: "flex",
-            fontSize: 24,
-            letterSpacing: 4,
-            color: t.muted,
+            alignItems: "center",
+            gap: 16,
             marginBottom: 28,
           }}
         >
-          AI ERA CARD{p.display.handle ? ` · ${p.display.handle}` : ""}
+          <div
+            style={{
+              display: "flex",
+              fontSize: 22,
+              letterSpacing: 4,
+              color: palette.muted,
+            }}
+          >
+            AI ERA CARD
+            {p.display.handle ? ` · ${p.display.handle}` : ""}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 20,
+              letterSpacing: 2,
+              color: palette.bg,
+              background: palette.accent,
+              borderRadius: 999,
+              padding: "8px 18px",
+              fontWeight: 700,
+            }}
+          >
+            {rank.title}
+          </div>
         </div>
 
         <div
           style={{
             display: "flex",
-            fontSize: 110,
+            fontSize: 118,
             fontWeight: 700,
-            color: t.text,
+            color: palette.ink,
             lineHeight: 1,
+            letterSpacing: -4,
           }}
         >
           {fmtTokens(a.totalTokens)}
@@ -126,46 +155,55 @@ export default async function OgImage({
         <div
           style={{
             display: "flex",
-            fontSize: 28,
-            color: t.muted,
-            marginTop: 12,
+            fontSize: 26,
+            color: palette.muted,
+            marginTop: 14,
           }}
         >
-          tokens processed · since {fmtMonthYear(a.firstActivityDate)}
+          tokens · since {fmtMonthYear(a.firstActivityDate)}
         </div>
         <div
           style={{
             display: "flex",
             fontSize: 24,
-            color: t.accent,
+            color: palette.accent,
             marginTop: 8,
-            marginBottom: 40,
+            marginBottom: 32,
           }}
         >
-          ~{warAndPeaceEquivalent(a.totalTokens)} copies of War and Peace
+          ~{warAndPeaceEquivalent(a.totalTokens)}× War and Peace
+          {milestones[0] ? ` · ${milestones[0].label}` : ""}
         </div>
 
-        <div style={{ display: "flex", gap: 20 }}>
+        <div style={{ display: "flex", gap: 16 }}>
           {metrics.map((m) => (
             <div
               key={m.label}
               style={{
                 display: "flex",
                 flexDirection: "column",
-                background: t.panel,
+                background: palette.panel,
                 borderRadius: 14,
-                padding: "20px 28px",
-                width: 240,
+                padding: "18px 24px",
+                width: 230,
+                border: `1px solid ${palette.accentSoft}`,
               }}
             >
-              <div style={{ display: "flex", fontSize: 40, color: t.text }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 36,
+                  color: palette.ink,
+                  fontWeight: 600,
+                }}
+              >
                 {m.value}
               </div>
               <div
                 style={{
                   display: "flex",
-                  fontSize: 20,
-                  color: t.muted,
+                  fontSize: 18,
+                  color: palette.muted,
                   marginTop: 4,
                 }}
               >
@@ -180,23 +218,17 @@ export default async function OgImage({
             display: "flex",
             justifyContent: "space-between",
             marginTop: "auto",
-            fontSize: 24,
+            fontSize: 22,
+            color: palette.muted,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              color: t.chipText,
-              maxWidth: 640,
-              overflow: "hidden",
-            }}
-          >
-            {a.distinctModels.slice(0, 2).join(" · ")}
-            {a.distinctModels.length > 2
-              ? ` +${a.distinctModels.length - 2}`
-              : ""}
+          <div style={{ display: "flex" }}>
+            {milestones
+              .slice(0, 3)
+              .map((m) => m.label)
+              .join(" · ")}
           </div>
-          <div style={{ display: "flex", color: t.link }}>
+          <div style={{ display: "flex", color: palette.accent }}>
             {host}/s/{slug}
           </div>
         </div>

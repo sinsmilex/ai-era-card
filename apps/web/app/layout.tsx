@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { JetBrains_Mono } from "next/font/google";
+
+const cardMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-card-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "AI Era Card",
@@ -9,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cardMono.variable}>
       <body
         style={{
           margin: 0,
