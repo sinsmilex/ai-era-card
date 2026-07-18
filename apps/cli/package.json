@@ -4,10 +4,22 @@
   "description": "Generate a shareable card from your AI tool usage. Local parsing, aggregate numbers only.",
   "type": "module",
   "bin": {
-    "aieracard": "./dist/index.js"
+    "aieracard": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "usage",
+    "stats",
+    "claude-code",
+    "cursor",
+    "openrouter",
+    "wrapped",
+    "share-card"
   ],
   "engines": {
     "node": ">=18.17"
