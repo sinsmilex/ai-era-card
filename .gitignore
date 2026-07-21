@@ -11,3 +11,6 @@ dist/
 
 # Editor-fetched skill/reference docs (Cursor, etc.) — tool cache, not project source
 .agents/
+
+# Agent scratch space — never project source
+tmp/

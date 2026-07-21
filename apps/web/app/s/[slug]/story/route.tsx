@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { getStore } from "@/lib/db";
-import { buildMosaic } from "@/lib/mosaic";
-import { cardTheme as t } from "@/components/cardTheme";
+import { buildBuilding, buildingBounds } from "@/lib/mosaic";
+import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
   fmtMonthYear,
@@ -13,7 +13,7 @@ import {
 
 // Vertical 1080×1920 export for Instagram/TikTok Stories — platforms with
 // no link unfurl at all, where a story-sized image is the only way in.
-// Wrapped-style content is natively a Stories format.
+// Shares rank/palette/territory building with the card and OG image.
 export const runtime = "nodejs";
 
 const SIZE = { width: 1080, height: 1920 };
@@ -31,8 +31,16 @@ export async function GET(
 
   const p = rec.payload;
   const a = p.aggregate;
-  const mosaic = buildMosaic(p, 48);
+  const palette = eraPalette(p);
+  const rank = eraRank(p);
+  const milestones = eraMilestones(p);
+  const blocks = buildBuilding(p);
+  const bounds = buildingBounds(blocks);
   const host = appUrl().replace(/^https?:\/\//, "");
+
+  const CELL = 52;
+  const buildingW = (bounds.maxX - bounds.minX + 1) * CELL;
+  const buildingH = (bounds.maxY - bounds.minY + 1) * CELL;
 
   const metrics = [
     ...(a.totalCostUsd != null
@@ -51,39 +59,67 @@ export async function GET(
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          background: t.bg,
-          padding: "120px 88px",
+          background: palette.bg,
+          padding: "110px 88px 90px",
           fontFamily: "monospace",
+          color: palette.ink,
         }}
       >
         <div
           style={{
             display: "flex",
-            fontSize: 34,
-            letterSpacing: 6,
-            color: t.muted,
+            alignItems: "center",
+            gap: 20,
+            flexWrap: "wrap",
           }}
         >
-          AI ERA CARD{p.display.handle ? ` · ${p.display.handle}` : ""}
+          <div
+            style={{
+              display: "flex",
+              fontSize: 32,
+              letterSpacing: 6,
+              color: palette.muted,
+            }}
+          >
+            AI ERA CARD{p.display.handle ? ` · ${p.display.handle}` : ""}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 28,
+              letterSpacing: 2,
+              color: palette.bg,
+              background: palette.accent,
+              borderRadius: 999,
+              padding: "10px 24px",
+              fontWeight: 700,
+            }}
+          >
+            {rank.title}
+          </div>
         </div>
 
         <div
           style={{
             display: "flex",
-            flexWrap: "wrap",
-            width: 8 * 54,
-            gap: 10,
-            marginTop: 80,
+            position: "relative",
+            width: buildingW,
+            height: buildingH,
+            marginTop: 70,
           }}
         >
-          {mosaic.map((c, i) => (
+          {blocks.map((bl, i) => (
             <div
               key={i}
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 8,
-                background: c.color,
+                position: "absolute",
+                left: (bl.x - bounds.minX) * CELL,
+                top: (bl.y - bounds.minY) * CELL,
+                width: CELL - 8,
+                height: CELL - 8,
+                borderRadius: 9,
+                background: bl.color,
+                display: "flex",
               }}
             />
           ))}
@@ -92,11 +128,11 @@ export async function GET(
         <div
           style={{
             display: "flex",
-            fontSize: 150,
+            fontSize: 148,
             fontWeight: 700,
-            color: t.text,
             lineHeight: 1,
-            marginTop: 90,
+            marginTop: 70,
+            letterSpacing: -4,
           }}
         >
           {fmtTokens(a.totalTokens)}
@@ -104,40 +140,30 @@ export async function GET(
         <div
           style={{
             display: "flex",
-            fontSize: 42,
-            color: t.muted,
-            marginTop: 20,
+            fontSize: 40,
+            color: palette.muted,
+            marginTop: 18,
           }}
         >
-          tokens processed
+          tokens · since {fmtMonthYear(a.firstActivityDate)}
         </div>
         <div
           style={{
             display: "flex",
-            fontSize: 36,
-            color: t.muted,
-            marginTop: 10,
+            fontSize: 33,
+            color: palette.accent,
+            marginTop: 14,
           }}
         >
-          since {fmtMonthYear(a.firstActivityDate)}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            fontSize: 34,
-            color: t.accent,
-            marginTop: 24,
-          }}
-        >
-          ~{warAndPeaceEquivalent(a.totalTokens)} copies of War and Peace
+          ~{warAndPeaceEquivalent(a.totalTokens)}× War and Peace
         </div>
 
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 26,
-            marginTop: 90,
+            gap: 24,
+            marginTop: 70,
           }}
         >
           {metrics.map((m) => (
@@ -147,20 +173,35 @@ export async function GET(
                 display: "flex",
                 alignItems: "baseline",
                 justifyContent: "space-between",
-                background: t.panel,
+                background: palette.panel,
                 borderRadius: 20,
-                padding: "34px 44px",
+                padding: "30px 44px",
+                border: `1px solid ${palette.accentSoft}`,
               }}
             >
-              <div style={{ display: "flex", fontSize: 64, color: t.text }}>
-                {m.v}
-              </div>
-              <div style={{ display: "flex", fontSize: 32, color: t.muted }}>
+              <div style={{ display: "flex", fontSize: 60 }}>{m.v}</div>
+              <div style={{ display: "flex", fontSize: 30, color: palette.muted }}>
                 {m.l}
               </div>
             </div>
           ))}
         </div>
+
+        {milestones.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              fontSize: 30,
+              color: palette.muted,
+              marginTop: 56,
+            }}
+          >
+            {milestones
+              .slice(0, 3)
+              .map((m) => m.label)
+              .join(" · ")}
+          </div>
+        )}
 
         <div
           style={{
@@ -168,7 +209,7 @@ export async function GET(
             justifyContent: "center",
             marginTop: "auto",
             fontSize: 36,
-            color: t.link,
+            color: palette.accent,
           }}
         >
           {host}
