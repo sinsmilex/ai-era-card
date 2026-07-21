@@ -215,6 +215,7 @@ async function collectAggregatedWindow(
   window: CursorWindow,
   totals: { tokens: number; cents: number; models: Set<string> },
   warnings: string[],
+  dataGaps: { found: boolean },
   depth = 0
 ): Promise<void> {
   try {
@@ -230,10 +231,25 @@ async function collectAggregatedWindow(
       warnings.push(
         `aggregated usage failed for ${windowLabel(window)}; retrying its two halves`
       );
-      await collectAggregatedWindow(cookie, halves[0], totals, warnings, depth + 1);
-      await collectAggregatedWindow(cookie, halves[1], totals, warnings, depth + 1);
+      await collectAggregatedWindow(
+        cookie,
+        halves[0],
+        totals,
+        warnings,
+        dataGaps,
+        depth + 1
+      );
+      await collectAggregatedWindow(
+        cookie,
+        halves[1],
+        totals,
+        warnings,
+        dataGaps,
+        depth + 1
+      );
       return;
     }
+    dataGaps.found = true;
     warnings.push(
       `aggregated usage unavailable for ${windowLabel(window)}: ${error.message}`
     );
@@ -245,6 +261,7 @@ async function collectFilteredWindow(
   window: CursorWindow,
   onProgress: ((fetched: number, total: number) => void) | undefined,
   warnings: string[],
+  dataGaps: { found: boolean },
   depth = 0
 ): Promise<FilteredWindowResult> {
   try {
@@ -287,8 +304,22 @@ async function collectFilteredWindow(
         `usage events failed for ${windowLabel(window)}; retrying its two halves`
       );
       const [left, right] = await Promise.all([
-        collectFilteredWindow(cookie, halves[0], onProgress, warnings, depth + 1),
-        collectFilteredWindow(cookie, halves[1], onProgress, warnings, depth + 1),
+        collectFilteredWindow(
+          cookie,
+          halves[0],
+          onProgress,
+          warnings,
+          dataGaps,
+          depth + 1
+        ),
+        collectFilteredWindow(
+          cookie,
+          halves[1],
+          onProgress,
+          warnings,
+          dataGaps,
+          depth + 1
+        ),
       ]);
       return {
         requestCount: left.requestCount + right.requestCount,
@@ -307,6 +338,7 @@ async function collectFilteredWindow(
               : Math.max(left.lastMs, right.lastMs),
       };
     }
+    dataGaps.found = true;
     warnings.push(`usage events unavailable for ${windowLabel(window)}: ${error.message}`);
     return {
       requestCount: 0,
@@ -343,13 +375,15 @@ export async function collectCursorApi(
 
   // Aggregated: per-model tokens + cents, summed across the sub-windows.
   const totals = { tokens: 0, cents: 0, models: new Set<string>() };
+  const dataGaps = { found: false };
   for (let i = 0; i < bounds.length - 1; i++) {
     if (bounds[i] >= bounds[i + 1]) continue;
     await collectAggregatedWindow(
       cookie,
       { startMs: bounds[i], endMs: bounds[i + 1] },
       totals,
-      warnings
+      warnings,
+      dataGaps
     );
   }
 
@@ -368,7 +402,8 @@ export async function collectCursorApi(
       cookie,
       { startMs: bounds[i], endMs: bounds[i + 1] },
       onProgress,
-      warnings
+      warnings,
+      dataGaps
     );
     eventTotals.requestCount += chunk.requestCount;
     for (const date of chunk.activeDates) eventTotals.activeDates.add(date);
@@ -376,6 +411,10 @@ export async function collectCursorApi(
       eventTotals.firstMs = chunk.firstMs;
     if (chunk.lastMs != null && (eventTotals.lastMs == null || chunk.lastMs > eventTotals.lastMs))
       eventTotals.lastMs = chunk.lastMs;
+  }
+
+  if (dataGaps.found) {
+    throw new Error(`Cursor API returned incomplete data: ${warnings.join("; ")}`);
   }
 
   if (totals.tokens === 0 && eventTotals.requestCount === 0) {

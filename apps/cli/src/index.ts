@@ -197,11 +197,12 @@ Options:
         s.stop(
           interactive
             ? `Cursor API failed (${e.message}) — falling back to CSV`
-            : `Cursor API failed (${e.message}) — Cursor skipped`
+            : `Cursor API failed (${e.message})`
         );
         if (!interactive) {
-          p.log.error(
-            "Cursor was not included. Re-run without --yes to provide a CSV, or pass --cursor-csv <path>."
+          bail(
+            "Cursor was not included. Re-run without --yes to provide a CSV, " +
+              "pass --cursor-csv <path>, or explicitly opt out with --no-cursor."
           );
         }
       }

@@ -43,7 +43,7 @@ describe("collectCursorApi", () => {
     expect(result?.warnings).toEqual([]);
   });
 
-  it("keeps successful windows when one aggregated window stays unavailable", async () => {
+  it("rejects partial data when an aggregated window stays unavailable", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: string | URL, init?: RequestInit) => {
@@ -65,12 +65,8 @@ describe("collectCursorApi", () => {
       })
     );
 
-    const result = await collectCursorApi("user::token");
-
-    expect(result?.source.totalTokens).toBe(45);
-    expect(result?.source.totalCostUsd).toBe(0.03);
-    expect(result?.warnings).toContainEqual(
-      expect.stringContaining("aggregated usage unavailable")
+    await expect(collectCursorApi("user::token")).rejects.toThrow(
+      /Cursor API returned incomplete data: .*aggregated usage unavailable/
     );
   });
 });
