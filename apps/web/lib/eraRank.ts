@@ -1,4 +1,5 @@
 import type { SnapshotPayload } from "@aieracard/schema";
+import { fmtTokens, fmtUsd } from "./format";
 
 // Status bands earned from real aggregates — not XP, quests, or daily login.
 // Same payload → same rank forever (deterministic, no accounts).
@@ -189,4 +190,17 @@ export function shareLine(payload: SnapshotPayload, url: string): string {
         : String(a.totalTokens);
   const who = payload.display.handle ? `${payload.display.handle} · ` : "";
   return `${who}${rank.title} — ${tokens} tokens in the AI era. ${url}`;
+}
+
+export function linkedInShareLine(payload: SnapshotPayload, url: string): string {
+  const rank = eraRank(payload);
+  const a = payload.aggregate;
+  const who = payload.display.handle ? `${payload.display.handle}'s ` : "";
+  const compute =
+    a.totalCostUsd != null ? ` · ${fmtUsd(a.totalCostUsd)} compute` : "";
+
+  return `${who}AI usage snapshot: ${rank.title} · ${fmtTokens(a.totalTokens)} tokens across ${a.totalActiveDays} active days${compute}.
+
+Self-reported aggregate data, not a game score.
+${url}`;
 }

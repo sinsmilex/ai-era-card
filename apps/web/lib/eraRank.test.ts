@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SnapshotPayload } from "@aieracard/schema";
-import { eraMilestones, eraPalette, eraRank } from "./eraRank";
+import { eraMilestones, eraPalette, eraRank, linkedInShareLine } from "./eraRank";
 import { buildBuilding } from "./mosaic";
 
 function payload(tokens: number, extras: Partial<SnapshotPayload["aggregate"]> = {}): SnapshotPayload {
@@ -81,5 +81,23 @@ describe("eraRank", () => {
     const apex = buildBuilding(payload(100_000_000_000));
     expect(buildBuilding(payload(1_000_000))).toEqual(foundation);
     expect(apex.length).toBeGreaterThan(foundation.length);
+  });
+
+  it("builds a calm LinkedIn summary with known compute", () => {
+    const line = linkedInShareLine(payload(1_500_000_000), "https://example.com/s/test");
+    expect(line).toContain("L4 · TOWER");
+    expect(line).toContain("1.5B tokens");
+    expect(line).toContain("50 active days");
+    expect(line).toContain("$100 compute");
+    expect(line).toContain("Self-reported aggregate data, not a game score.");
+    expect(line).toContain("https://example.com/s/test");
+  });
+
+  it("does not invent compute in a LinkedIn summary", () => {
+    const line = linkedInShareLine(
+      payload(1_500_000_000, { totalCostUsd: null }),
+      "https://example.com/s/test"
+    );
+    expect(line).not.toContain("compute");
   });
 });

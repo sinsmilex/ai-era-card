@@ -228,10 +228,7 @@ export default async function OgImage({
           }}
         >
           <div style={{ display: "flex" }}>
-            {milestones
-              .slice(0, 3)
-              .map((m) => m.label)
-              .join(" · ")}
+            Self-reported · not a game score
           </div>
           <div style={{ display: "flex", color: palette.accent }}>
             {host}/s/{slug}

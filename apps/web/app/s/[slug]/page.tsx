@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
 import { appUrl, fmtTokens } from "@/lib/format";
-import { eraPalette, eraRank, shareLine } from "@/lib/eraRank";
+import { eraPalette, eraRank, linkedInShareLine, shareLine } from "@/lib/eraRank";
 import { StatsCard, sourceLabels } from "@/components/StatsCard";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { CopyTextButton } from "@/components/CopyTextButton";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,8 @@ export default async function CardPage({ params }: Props) {
   const url = `${appUrl()}/s/${slug}`;
   const palette = eraPalette(rec.payload);
   const tweet = shareLine(rec.payload, url);
+  const linkedInPost = linkedInShareLine(rec.payload, url);
+  const badgeMarkdown = `[![My AI era](${url}/card.svg)](${url})`;
 
   return (
     <main
@@ -60,6 +63,81 @@ export default async function CardPage({ params }: Props) {
       }}
     >
       <StatsCard payload={rec.payload} slug={slug} host={host} />
+
+      <p
+        style={{
+          color: palette.muted,
+          fontSize: 12,
+          textAlign: "center",
+          maxWidth: 500,
+          lineHeight: 1.5,
+          margin: "-12px 0 0",
+        }}
+      >
+        Self-reported aggregate statistics. Only token counts, dates, and model
+        IDs leave your machine—never prompts, code, or paths.{" "}
+        <a href="/privacy" style={{ color: palette.accent }}>
+          Read the privacy contract.
+        </a>
+      </p>
+
+      <section
+        aria-label="Share on LinkedIn"
+        style={{
+          width: "100%",
+          maxWidth: 680,
+          background: palette.panel,
+          border: `1px solid ${palette.accentSoft}`,
+          borderRadius: 12,
+          padding: "18px 20px",
+        }}
+      >
+        <div style={{ fontSize: 14, fontWeight: 600, color: palette.ink }}>
+          Share on LinkedIn
+        </div>
+        <p
+          style={{
+            color: palette.muted,
+            fontSize: 12,
+            lineHeight: 1.5,
+            margin: "6px 0 14px",
+          }}
+        >
+          Post the image natively, then add this card&apos;s link in the first
+          comment.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          <CopyTextButton
+            text={linkedInPost}
+            label="Copy post text"
+            accent={palette.accent}
+            panel={palette.bg}
+            ink={palette.ink}
+          />
+          <a
+            href={`${url}/opengraph-image`}
+            download={`ai-era-card-${slug}.png`}
+            style={{
+              color: palette.bg,
+              background: palette.accent,
+              padding: "10px 18px",
+              borderRadius: 8,
+              textDecoration: "none",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            Download image
+          </a>
+          <CopyTextButton
+            text={badgeMarkdown}
+            label="Copy README badge"
+            accent={palette.accent}
+            panel={palette.bg}
+            ink={palette.ink}
+          />
+        </div>
+      </section>
 
       <div
         style={{
@@ -103,20 +181,6 @@ export default async function CardPage({ params }: Props) {
           Make your own →
         </a>
       </div>
-
-      <p
-        style={{
-          color: palette.muted,
-          fontSize: 12,
-          textAlign: "center",
-          maxWidth: 420,
-          lineHeight: 1.5,
-          margin: 0,
-        }}
-      >
-        Self-reported · {rec.payload.generatedAt} · rank from your tokens,
-        not a game score
-      </p>
     </main>
   );
 }

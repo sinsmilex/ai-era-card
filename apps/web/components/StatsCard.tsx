@@ -295,6 +295,16 @@ export function StatsCard({
           </div>
         )}
 
+        <div
+          style={{
+            marginTop: 16,
+            fontSize: 11,
+            color: palette.muted,
+          }}
+        >
+          Self-reported · not a game score
+        </div>
+
         {payload.sources.openrouter && (
           <div
             style={{
