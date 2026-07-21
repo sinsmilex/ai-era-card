@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
+import { headers } from "next/headers";
 import { getStore } from "@/lib/db";
+import { track } from "@/lib/track";
 import { buildingBounds, buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
@@ -46,6 +48,8 @@ export default async function OgImage({
       size
     );
   }
+
+  await track(slug, "og", await headers());
 
   const p = rec.payload;
   const a = p.aggregate;

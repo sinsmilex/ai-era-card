@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/db";
+import { track } from "@/lib/track";
 import { appUrl, fmtTokens } from "@/lib/format";
 import { eraPalette, eraRank, shareLine } from "@/lib/eraRank";
 import { StatsCard, sourceLabels } from "@/components/StatsCard";
@@ -34,6 +36,7 @@ export default async function CardPage({ params }: Props) {
   const store = await getStore();
   const rec = await store.getBySlug(slug);
   if (!rec) notFound();
+  await track(slug, "page", await headers());
 
   const host = appUrl().replace(/^https?:\/\//, "");
   const url = `${appUrl()}/s/${slug}`;

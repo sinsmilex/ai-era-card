@@ -1,5 +1,10 @@
 import { Pool } from "pg";
-import type { SnapshotRecord, SnapshotStore } from "./index";
+import type {
+  CardEvent,
+  SnapshotRecord,
+  SnapshotStore,
+  StatsSummary,
+} from "./index";
 
 export class PgStore implements SnapshotStore {
   private constructor(private pool: Pool) {}
@@ -23,6 +28,15 @@ export class PgStore implements SnapshotStore {
       );
       ALTER TABLE snapshots ADD COLUMN IF NOT EXISTS has_codex boolean NOT NULL DEFAULT false;
       CREATE INDEX IF NOT EXISTS snapshots_total_tokens_idx ON snapshots (total_tokens DESC);
+      CREATE TABLE IF NOT EXISTS card_events (
+        id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        slug text NOT NULL,
+        surface text NOT NULL,
+        referer_host text,
+        ua_class text,
+        created_at timestamptz NOT NULL DEFAULT now()
+      );
+      CREATE INDEX IF NOT EXISTS card_events_created_idx ON card_events (created_at DESC);
     `);
     return new PgStore(pool);
   }
@@ -60,6 +74,48 @@ export class PgStore implements SnapshotStore {
       slug: row.slug,
       createdAt: new Date(row.created_at).toISOString(),
       payload: row.payload,
+    };
+  }
+
+  async recordEvent(event: CardEvent): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO card_events (slug, surface, referer_host, ua_class)
+       VALUES ($1, $2, $3, $4)`,
+      [event.slug, event.surface, event.refererHost, event.uaClass]
+    );
+  }
+
+  async getStats(): Promise<StatsSummary> {
+    const [cards, cards7d, surfaces, referers, byDay] = await Promise.all([
+      this.pool.query(`SELECT count(*)::int AS n FROM snapshots`),
+      this.pool.query(
+        `SELECT count(*)::int AS n FROM snapshots WHERE created_at > now() - interval '7 days'`
+      ),
+      this.pool.query(
+        `SELECT surface, count(*)::int AS n FROM card_events
+         WHERE created_at > now() - interval '30 days'
+         GROUP BY surface`
+      ),
+      this.pool.query(
+        `SELECT referer_host AS host, count(*)::int AS n FROM card_events
+         WHERE created_at > now() - interval '30 days' AND referer_host IS NOT NULL
+         GROUP BY referer_host ORDER BY n DESC LIMIT 10`
+      ),
+      this.pool.query(
+        `SELECT to_char(created_at::date, 'YYYY-MM-DD') AS day, count(*)::int AS n
+         FROM card_events
+         WHERE created_at > now() - interval '14 days'
+         GROUP BY 1 ORDER BY 1`
+      ),
+    ]);
+    return {
+      totalCards: cards.rows[0].n,
+      cardsLast7d: cards7d.rows[0].n,
+      viewsBySurface30d: Object.fromEntries(
+        surfaces.rows.map((r) => [r.surface, r.n])
+      ),
+      topReferers30d: referers.rows.map((r) => ({ host: r.host, count: r.n })),
+      viewsByDay14d: byDay.rows.map((r) => ({ day: r.day, count: r.n })),
     };
   }
 }

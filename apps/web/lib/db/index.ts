@@ -6,9 +6,30 @@ export interface SnapshotRecord {
   payload: SnapshotPayload;
 }
 
+// One row per render of a card surface. Deliberately PII-free: referer is
+// host-only (no path/query), user agent is reduced to a bot class, no IP.
+export type CardSurface = "page" | "og" | "badge" | "story";
+
+export interface CardEvent {
+  slug: string;
+  surface: CardSurface;
+  refererHost: string | null;
+  uaClass: string | null;
+}
+
+export interface StatsSummary {
+  totalCards: number;
+  cardsLast7d: number;
+  viewsBySurface30d: Record<string, number>;
+  topReferers30d: Array<{ host: string; count: number }>;
+  viewsByDay14d: Array<{ day: string; count: number }>;
+}
+
 export interface SnapshotStore {
   insert(rec: SnapshotRecord & { ipHash: string | null }): Promise<void>;
   getBySlug(slug: string): Promise<SnapshotRecord | null>;
+  recordEvent(event: CardEvent): Promise<void>;
+  getStats(): Promise<StatsSummary>;
 }
 
 // Postgres (Neon) in production when DATABASE_URL is set; a local JSON file

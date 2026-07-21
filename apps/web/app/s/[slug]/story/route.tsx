@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { getStore } from "@/lib/db";
+import { track } from "@/lib/track";
 import { buildBuilding, buildingBounds } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
@@ -19,7 +20,7 @@ export const runtime = "nodejs";
 const SIZE = { width: 1080, height: 1920 };
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
@@ -28,6 +29,7 @@ export async function GET(
   if (!rec) {
     return new Response("Not found", { status: 404 });
   }
+  await track(slug, "story", req.headers);
 
   const p = rec.payload;
   const a = p.aggregate;

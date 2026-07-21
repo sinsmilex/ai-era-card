@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
+import { track } from "@/lib/track";
 import { buildBuilding, buildingBounds } from "@/lib/mosaic";
 import { eraPalette, eraRank } from "@/lib/eraRank";
 import { appUrl, fmtMonthYear, fmtTokens } from "@/lib/format";
@@ -27,7 +28,7 @@ function esc(s: string): string {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
@@ -36,6 +37,7 @@ export async function GET(
   if (!rec) {
     return new NextResponse("Not found", { status: 404 });
   }
+  await track(slug, "badge", req.headers);
 
   const p = rec.payload;
   const a = p.aggregate;
