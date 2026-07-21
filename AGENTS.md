@@ -115,6 +115,7 @@ your own memory of a previous session.
 
 ## Known gaps / next up
 
+- **Current go-to-market plan:** see [`docs/LAUNCH_PLAN.md`](docs/LAUNCH_PLAN.md).
 - **OpenRouter collector still needs a live-key dry-run.** Hardened against
   the documented `/credits` + `/activity` shapes (no silent `.catch`,
   all-time spend kept off aggregate totals, models deduped). Still run
@@ -137,6 +138,7 @@ your own memory of a previous session.
 
 ## Conventions worth preserving
 
+- Commits must be authored as sinsmile; never include a Cursor Co-authored-by trailer.
 - Every number that reaches a user (CLI output, card, OG image) is
   formatted through `fmtTokens`/`fmtUsd`/etc. — never raw floats.
 - The mosaic/building (`apps/web/lib/mosaic.ts`) is deterministic: same
