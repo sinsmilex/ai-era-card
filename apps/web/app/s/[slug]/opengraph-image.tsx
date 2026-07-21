@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getStore } from "@/lib/db";
-import { buildBuilding } from "@/lib/mosaic";
+import { buildingBounds, buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
@@ -53,6 +53,7 @@ export default async function OgImage({
   const rank = eraRank(p);
   const milestones = eraMilestones(p);
   const building = buildBuilding(p);
+  const buildingBoundary = buildingBounds(building);
   const host = appUrl().replace(/^https?:\/\//, "");
 
   const metrics = [
@@ -82,11 +83,9 @@ export default async function OgImage({
         <div
           style={{
             position: "absolute",
-            right: 40,
-            top: 36,
+            right: 64,
+            top: 52,
             display: "flex",
-          width: 265,
-          height: 238,
             opacity: 0.95,
           }}
         >
@@ -95,8 +94,8 @@ export default async function OgImage({
               key={i}
               style={{
                 position: "absolute",
-                left: block.x * 27,
-                top: block.y * 27,
+                left: (block.x - buildingBoundary.maxX) * 27 - 22,
+                top: (block.y - buildingBoundary.minY) * 27,
                 width: 22,
                 height: 22,
                 borderRadius: 4,

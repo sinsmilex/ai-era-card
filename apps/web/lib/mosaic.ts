@@ -15,6 +15,23 @@ export interface BuildingBlock {
   y: number;
 }
 
+export function buildingBounds(blocks: BuildingBlock[]) {
+  return blocks.reduce(
+    (bounds, block) => ({
+      minX: Math.min(bounds.minX, block.x),
+      minY: Math.min(bounds.minY, block.y),
+      maxX: Math.max(bounds.maxX, block.x),
+      maxY: Math.max(bounds.maxY, block.y),
+    }),
+    {
+      minX: Number.POSITIVE_INFINITY,
+      minY: Number.POSITIVE_INFINITY,
+      maxX: Number.NEGATIVE_INFINITY,
+      maxY: Number.NEGATIVE_INFINITY,
+    }
+  );
+}
+
 function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {

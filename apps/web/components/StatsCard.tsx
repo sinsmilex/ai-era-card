@@ -1,5 +1,5 @@
 import type { SnapshotPayload } from "@aieracard/schema";
-import { buildBuilding } from "@/lib/mosaic";
+import { buildingBounds, buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   fmtMonthYear,
@@ -31,6 +31,7 @@ export function StatsCard({
   const rank = eraRank(payload);
   const milestones = eraMilestones(payload);
   const building = buildBuilding(payload);
+  const buildingBoundary = buildingBounds(building);
   const sources = sourceLabels(payload);
 
   const metrics: Array<{ value: string; label: string }> = [
@@ -73,12 +74,9 @@ export function StatsCard({
         aria-hidden
         style={{
           position: "absolute",
-          right: -8,
-          top: -8,
-          width: 176,
-          height: 158,
+          right: 36,
+          top: 32,
           opacity: 0.9,
-          transform: "rotate(-2deg)",
         }}
       >
         {building.map((block, i) => (
@@ -86,8 +84,8 @@ export function StatsCard({
             key={i}
             style={{
               position: "absolute",
-              left: block.x * 18,
-              top: block.y * 18,
+              left: (block.x - buildingBoundary.maxX) * 18 - 14,
+              top: (block.y - buildingBoundary.minY) * 18,
               width: 14,
               height: 14,
               borderRadius: 3,
