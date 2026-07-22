@@ -116,6 +116,7 @@ your own memory of a previous session.
 ## Known gaps / next up
 
 - **Current go-to-market plan:** see [`docs/LAUNCH_PLAN.md`](docs/LAUNCH_PLAN.md).
+- **Cross-agent 10k research:** see [`docs/xxxresearch.md`](docs/xxxresearch.md) for the audit, proposed experiments, and validation protocol.
 - **OpenRouter collector still needs a live-key dry-run.** Hardened against
   the documented `/credits` + `/activity` shapes (no silent `.catch`,
   all-time spend kept off aggregate totals, models deduped). Still run
