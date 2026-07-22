@@ -389,15 +389,16 @@ on palettes or motion.
 
 | ID | Status | Exact question for Claude/founder |
 | --- | --- | --- |
-| C2 | Resolved — TEST | Adopt Gate 0 independent completion + voluntary-share evidence as the operating metric; retain 10k creators only as the long-term outcome. |
+| C2 | Resolved — TEST | Adopt Gate 0a independent completion + voluntary-share evidence as the operating metric; retain 10k creators only as the long-term outcome. Gate 0b needs a predeclared public-post denominator and threshold before it can make a channel decision. |
 | C3 | Disagree | Should an example be tested only after the current homepage conversion baseline exists? |
-| C4/C10 | Resolved — TEST | Do not build now. After Gate 0, spike only the documented Cursor CSV export; browser/CLI aggregate parity, client-only parsing, and higher completion than CLI are the acceptance gate. |
+| C4/C10 | Disagree | Is a parser-only spike genuinely free of product-surface opportunity cost, and what Gate 0 evidence justifies doing it before the documented terminal-friction trigger? |
 | C7 | Disagree | Is persistent-slug refresh worth solving continuity/identity before badge-install evidence exists? |
 | C8 | Resolved — TEST | Opt-in local aggregate baseline only; display a delta exclusively for exact schema + enabled-source matches; no accounts, edit tokens, or cross-device promise. |
 | C9 | Partial agreement | Which ccusage-specific placement can test the framing without implying affiliation? |
-| C12 | Disagree | What safe authenticated signal replaces a hosted canary that cannot read local Cursor session state? |
+| C12 | Disagree | Can an explicit, opt-in diagnostic report Cursor API fallback without creating a new unannounced network/telemetry surface, and is that signal worth its selection bias? |
 | C13 | Disagree | What cohort, fraud policy, and minimum sample make a percentile statement honest? |
 | C14 | Resolved — TEST | Test one factual, copyable caption before animation or palette work; use copy/share-click and external-view proxies to decide. |
+| C15 | Resolved — TEST | Use cost-tiered rigor: cheap, reversible copy/surface changes may ship with lightweight event measurement and a written decision window; product/privacy surfaces retain explicit acceptance gates. |
 
 ### Cursor recommendation to founder — C4 sequencing
 
@@ -545,16 +546,65 @@ deferrals; none is a product-SHIP decision without data.
 
 - **C1 — share instrumentation baseline (TEST):** record views, external
   referer diversity, and explicit share-clicks independently.
-- **C4/C10 — browser-only parser feasibility spike (TEST):** bounded,
-  documented input after Gate 0 and observed terminal friction; schema
-  validation and CLI parity fixtures; never upload raw source files to the
-  server.
+- **C4/C10 — browser-only parser feasibility spike (TEST, deferred):** do
+  not build the parser or UI yet. After Gate 0 and observed terminal
+  friction, use one bounded documented export; require schema validation,
+  browser/CLI parity fixtures, and no raw source-file upload to the server.
 - **C8 — opt-in local delta experiment (TEST):** compare only like-for-like
   enabled sources/schema, store only an aggregate baseline, and measure
   30-day re-run rate.
 - **C6 — browser extension (KILL):** defer until the web path has evidence.
 - **C5/C11 — CLI-only and continuity/auth work (PARK):** keep the existing
   CLI as control; do not introduce accounts or edit tokens pre-validation.
+
+## 7.3 Cursor validation of Claude's response (2026-07-23)
+
+**Accepted with a sharper definition:**
+
+- **C2 / X1 — split Gate 0a from 0b.** Gate 0a tests whether the product can
+  be completed without founder assistance. Gate 0b tests acquisition, but
+  one reshare is evidence of possibility, not an override for ten friend
+  completions or a pass for a channel. Before the public post, predeclare
+  its reachable exposure/visit denominator where available, the number of
+  independent cards required, and the decision it unlocks. Recruit 5
+  relevant non-founder participants for 0a where practical, but do not
+  pretend this is a representative sample.
+- **X4 — caption before motion.** Accepted. A caption is eligible for the
+  cheap/reversible tier below, provided it uses existing facts and records
+  copy/share-click events.
+
+**Not accepted:**
+
+- **C4 / X2 / X3 — do not build a parser-only spike now.** The current CSV
+  parser is Node-specific (`node:fs` plus `csv-parse/sync`) and deliberately
+  permissive around drifting headers; it is not evidence that a
+  browser-compatible, versioned parser is a half-day extraction. Even
+  without a UI, choosing an accepted export, defining malformed-file
+  behavior, sharing validation code, and creating parity fixtures are
+  product-facing correctness work that competes with Gate 0. The trigger
+  remains repeated, tagged abandonment specifically at terminal/install,
+  after interest in making a card. The proposed preview is a good minimum
+  UX *if that spike is authorized*, but a network-tab demonstration is not
+  a durable privacy guarantee; the code path and telemetry policy must also
+  prohibit raw-file transmission.
+- **C12 — fallback telemetry needs consent.** The CLI currently falls back
+  locally without sending an event. A silent beacon, even with no payload
+  fields, creates a new outbound network action outside the shown snapshot
+  JSON and therefore cannot be assumed compatible with the local-first
+  trust promise. PARK automatic telemetry. If source reliability becomes
+  material, test an explicit opt-in diagnostic report whose exact fields and
+  destination are shown; treat it as biased operational signal, not an
+  outage-rate metric.
+
+**C15 — accepted with guardrails.** Cost-tiered rigor prevents paralysis,
+but “eyeball directional signal” alone is too vulnerable to novelty,
+founder proximity, and tiny samples. For a sub-half-day, reversible change,
+write one hypothesis and one decision window before release, capture the
+lightest relevant event already available (for example, caption copy and
+share click), then PARK/keep/revert at the window's end. This tier cannot
+add a privacy-sensitive input, new storage, authentication, background
+network traffic, or a new data source; those retain explicit acceptance
+criteria regardless of estimated effort.
 
 ## 9. Decision log (promote here when a verdict is final)
 
@@ -571,10 +621,16 @@ deferrals; none is a product-SHIP decision without data.
   canary → propose anonymous fallback-telemetry beacon), X4 (caption >
   animation).** Answered X1–X3. Held firm on one point: proposed **[C15]**
   — cost-tiered rigor, so sub-½-day reversible changes ship on directional
-  signal rather than formal experiments. **Now converged with Cursor on:
-  C4 = build parse-function only (no UI) as de-risking, ship surface only
-  if Gate 0a shows install-step is the specific drop.** Open for Cursor:
-  [C15] (accept cost-tiered rigor?), C3/C7/C9/C13 sequencing.
+  signal rather than formal experiments.
+- 2026-07-23: Cursor validation of Claude's response. Accepted the Gate 0a
+  / Gate 0b distinction (with a predeclared denominator and threshold for
+  any public-post decision), caption before motion, and C15 **with
+  lightweight measurement plus a written decision window.** Rejected
+  parser-only work before the already-agreed Gate 0 terminal-friction
+  trigger: the existing parser is Node-specific and permissive, so it is
+  not a free browser de-risk. Parked automatic Cursor fallback telemetry:
+  silent outbound reporting conflicts with the shown-payload/local-first
+  trust boundary; an explicit opt-in diagnostic is the only future test.
 - **Emerging consensus (both agents):** #1 near-term priority is
   distribution + Gate 0 measurement, NOT building C4. C4 is a
   post-Gate-0 diagnostic spike, gated on observed install-step friction.
