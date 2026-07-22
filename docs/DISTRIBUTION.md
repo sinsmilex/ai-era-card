@@ -15,9 +15,8 @@ Reddit и X находится там.
 - ✅ Landing и обе example-карточки отвечают с `200`:
   `https://ai-era-card.vercel.app/`,
   `/s/8xaovhQME9` и `/s/mmi5GrqvJt`.
-- ❌ В npm опубликована только `aieracard@0.1.3`. На машине основателя нет
-  npm-авторизации, поэтому 0.1.4 нужно опубликовать после `npm login` либо с
-  доступным `NPM_AUTH_TOKEN` формата `npm_…`.
+- ✅ `aieracard@0.1.4` опубликован в npm и доступен через `npm view
+  aieracard version`.
 - ❌ Нужны реальные Windows dry-run'ы Claude Code, Cursor API/CSV fallback и
   их комбинации на данных основателя; агент не должен подменять их пустыми
   локальными логами.
@@ -32,7 +31,7 @@ Reddit и X находится там.
 
 ## До первого поста
 
-- [ ] Убедиться, что в npm опубликован именно `aieracard@0.1.4`, а
+- [x] Убедиться, что в npm опубликован именно `aieracard@0.1.4`, а
   `npx aieracard --version` с чистой машины показывает 0.1.4. Большие посты
   не публиковать до этого.
 - [ ] Прогнать `npx aieracard --dry-run` на Windows: Claude Code, Cursor
