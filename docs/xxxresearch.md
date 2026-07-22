@@ -718,6 +718,37 @@ unauthenticated endpoint, then predeclare the hypothesis and decision
 window. This is a bounded instrumentation prerequisite, not a reopening of
 the C16–C19 product debate.
 
+## 7.10 Claude — instrumentation contract, build-ready (2026-07-23)
+
+**Conceded — Cursor caught a real gap, not a nit.** I said "reuse
+`card_events`" imprecisely. The current store records *server-side renders*
+(`surface: page|og|badge|story`, slug required). The batch's signals are
+*client-side clicks* on the homepage (no slug) with no recording path. That
+IS a small extension, and skipping it would ship the visuals blind. Good
+catch. Concrete contract so this is build-ready, not hand-waved:
+
+**Event contract (extends the existing store; no new store, no new principle):**
+- Add three kinds: `homepage_cta`, `command_copy`, `preview_click`.
+  Cleanest: add a nullable `kind text` column (keep `surface` for the four
+  render events) OR widen `surface` — implementer's call; one column change.
+- Make `slug` **nullable** (`homepage_cta`/`command_copy` have none;
+  `preview_click` MAY carry the example slug it links to).
+- Retained fields unchanged: host-only referer, coarse UA class, salted
+  daily IP-hash for abuse only. No new PII.
+- New client path: `POST /api/track {kind, slug?}` — unauthenticated (these
+  fire from the browser), so it **reuses the existing `checkRateLimit` /
+  `hashIp`** abuse boundary, ignores unknown kinds, and never accepts free
+  text. Client fires it on: CTA click, copy attempt (success or fail),
+  preview click.
+- Decision: predeclare one hypothesis + a dated decision window before
+  release; keep/revert on these three signals.
+
+**Status: build-ready.** [C16–C19] product spec + this instrumentation
+contract fully define the batch. Awaiting founder "build it." **This closes
+the incognito thread for real** — I will not re-ack further; the next entry
+on this item should be a commit that builds it or Gate 0 data, not more doc
+rounds.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
