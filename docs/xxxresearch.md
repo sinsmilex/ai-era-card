@@ -123,12 +123,17 @@ If it can't convert a spike, no number of spikes helps — so *conversion
 readiness* is the actual pre-work. This reframes §3 as urgent.
 **Challenge (Cursor, 2026-07-23)** — disagree with treating a count of
 "shots" as the operating goal; it can reward low-quality posting. Keep
-10k as the outcome target and use conversion readiness as a prerequisite:
-each channel test needs exposure, install/start, card-created, and
-share-proxy denominators. A channel earns another shot only if it improves
-one measured funnel stage.
-**Cursor verdict — TEST.** Adopt the measurement gate, not an unqualified
-8–12-shot quota.
+10k as the outcome target, but make the controllable Gate 0 metric:
+**independent creators who complete a card and voluntarily share it**. For
+every channel test, record exposure (when available), landing visit,
+install/start, card-created, and share intent/proxy. The 60-day plan is a
+sequence of evidence-bearing channel tests, not an 8–12-post quota; a
+channel earns another shot only if it produces independent completed cards
+or improves a measured funnel stage.
+**Cursor verdict — TEST.** Keep “10k creators” as the long-term outcome,
+but make Gate 0 pass when 5–10 non-founder target users attempt the flow,
+at least 3 complete cards without live help, and at least 1 shares
+unprompted. Do not use impressions, posts, or installs as substitutes.
 
 ---
 
@@ -173,15 +178,34 @@ parse in the browser → same aggregate payload → real card. This is the
 single biggest TAM unlock that doesn't violate a principle. Cursor: attack
 this or build it.
 **Challenge (Cursor, 2026-07-23)** — agree that browser-only aggregation
-can preserve the privacy contract, but arbitrary CSV/JSON is a support and
-privacy surface, not a free TAM unlock. Start with documented, bounded
-formats only; parse in a browser client module, validate the resulting
-aggregate with the browser-compatible `snapshotPayloadSchema`, and submit
-only that aggregate. A parser must have fixtures proving it emits the same
-payload as the CLI for equivalent source data.
-**Cursor verdict — TEST, not SHIP.** First metric: completed browser
-parse-to-card rate versus the `npx` start-to-card baseline; do not accept
-raw file uploads server-side.
+can preserve the privacy contract, but it is not a free TAM unlock:
+
+- A browser cannot read Claude Code/Codex local logs. For Cursor it also
+  cannot use the local `state.vscdb` session token or call the undocumented
+  dashboard API as the CLI does. C4 therefore serves only people willing to
+  export a file or paste a bounded aggregate; it does not make “one-click
+  Cursor” real.
+- An arbitrary CSV/JSON picker makes users decide whether an unknown site
+  can inspect a potentially sensitive file. Even with client-only parsing,
+  that trust explanation, malformed exports, version drift, and file-picker
+  support become a new product surface.
+- The only acceptable technical shape is a browser client module with a
+  documented, versioned input format; local parsing; browser-compatible
+  `snapshotPayloadSchema` validation; and submission of only the aggregate.
+  Raw file bytes must never reach the API or telemetry. A fixture must prove
+  the browser parser and CLI produce the same payload for equivalent source
+  data.
+
+**Cursor verdict — TEST, not SHIP; do not build the C4 PoC now.** First
+validate Gate 0 and instrument the CLI start-to-card baseline through
+friend DMs, then the planned Show HN test. If those users demonstrably
+value the card but fail at the terminal/install step, run a *time-boxed*
+single-format feasibility spike (Cursor’s documented CSV export, no generic
+JSON, no server upload). It passes only if users can select, understand, and
+mint from the file with a materially higher completion rate than the
+instrumented CLI baseline and no privacy/support failure. Until then C4
+competes directly with distribution work and treats an unproven hypothesis
+as the biggest TAM claim.
 
 **[C5] Claim — Keep CLI-only, double down on the dev niche.**
 Accept the gate; 10k Node devs who run npx is still a big number; purity
@@ -254,12 +278,19 @@ reminder surface we don't have.
 card (Mar 3)" — turning re-runs into a delta ritual without accounts or
 email. Ship the delta; measure re-run rate.
 **Challenge (Cursor, 2026-07-23)** — agree that a local pointer avoids
-accounts, but it creates state, migration, and multi-machine edge cases
-before the product has a re-run baseline. Test the copy/UX with an
-opt-in local pointer and report only deltas that are comparable across the
-same enabled sources; otherwise the result can be misleading.
-**Cursor verdict — TEST unchanged.** Metric: 30-day re-run rate among
-users who opt in, compared with the current baseline.
+accounts, but a “since last time” number is only honest if its two
+measurements are comparable. It creates state, migration, deletion, and
+multi-machine edge cases before the product has a re-run baseline.
+
+**Cursor verdict — TEST, deliberately narrow.** After Gate 0, offer an
+explicit opt-in local baseline file containing only the prior aggregate,
+timestamp, schema version, and enabled-source set—never paths, prompts, or
+raw logs. Show a delta only when the source set and schema match exactly;
+otherwise say “new snapshot; sources changed” and show no combined delta.
+Make reset/delete visible, never imply cross-device continuity, and do not
+introduce secret tokens, accounts, or slug replacement. Decide with
+30-day re-run rate among opt-ins versus baseline, plus the rate of
+comparable deltas; if it is not meaningfully above baseline, PARK it.
 
 **[C9] Claim — Position against ccusage, not Wrapped.**
 Our closest neighbor in devs' minds is ccusage (they screenshot it). Be
@@ -339,10 +370,18 @@ copy)? Argue for the highest-share-lift design change under 1 day of work.
 The best sub-day lever to test is a source-neutral, copyable caption
 generated from existing aggregate facts, placed beside each share action;
 it reduces composition friction without changing the card or claiming
-unverified status. Do not add first-load animation before measuring this:
-it does not travel with screenshots or unfurls.
-**Cursor verdict — TEST.** Measure caption-copy and downstream share-click
-rate against the current share surface.
+unverified status. It must use facts already displayed (e.g. rank, total
+tokens, selected period), label the card self-reported where appropriate,
+and degrade to a plain share URL on mobile/clipboard failure. Do not add
+first-load animation before measuring this: animation neither survives a
+screenshot nor improves the OG unfurl where most third-party viewers meet
+the artifact.
+**Cursor verdict — TEST.** Ship one deterministic, source-neutral
+caption template beside the existing share actions, with copy and share
+click instrumentation. Compare caption-copy → share-click against the
+current surface. If copy is used but cards still receive no external views,
+the problem is audience/value rather than visual polish; do not spend a day
+on palettes or motion.
 
 ---
 
@@ -350,15 +389,75 @@ rate against the current share surface.
 
 | ID | Status | Exact question for Claude/founder |
 | --- | --- | --- |
-| C2 | Disagree | Is a fixed 8–12-shot quota useful without a per-channel funnel threshold? |
+| C2 | Resolved — TEST | Adopt Gate 0 independent completion + voluntary-share evidence as the operating metric; retain 10k creators only as the long-term outcome. |
 | C3 | Disagree | Should an example be tested only after the current homepage conversion baseline exists? |
-| C4/C10 | Partial agreement | Which documented input format ships first, and what CLI/browser parity fixture is the acceptance gate? |
+| C4/C10 | Resolved — TEST | Do not build now. After Gate 0, spike only the documented Cursor CSV export; browser/CLI aggregate parity, client-only parsing, and higher completion than CLI are the acceptance gate. |
 | C7 | Disagree | Is persistent-slug refresh worth solving continuity/identity before badge-install evidence exists? |
-| C8 | Partial agreement | What comparable-source rule prevents a local delta from overstating a user's change? |
+| C8 | Resolved — TEST | Opt-in local aggregate baseline only; display a delta exclusively for exact schema + enabled-source matches; no accounts, edit tokens, or cross-device promise. |
 | C9 | Partial agreement | Which ccusage-specific placement can test the framing without implying affiliation? |
 | C12 | Disagree | What safe authenticated signal replaces a hosted canary that cannot read local Cursor session state? |
 | C13 | Disagree | What cohort, fraud policy, and minimum sample make a percentile statement honest? |
-| C14 | Partial agreement | Is caption-copy rate the first share-surface experiment, ahead of animation and palette work? |
+| C14 | Resolved — TEST | Test one factual, copyable caption before animation or palette work; use copy/share-click and external-view proxies to decide. |
+
+### Cursor recommendation to founder — C4 sequencing
+
+**Do not start building the C4 proof of concept now.** C4 carries the
+largest TAM claim and therefore needs the strongest evidence, not the
+fastest implementation. Browser-only parsing can protect the payload
+boundary, but cannot access local Claude/Codex logs or Cursor’s locally
+stored session/cookie flow; its realistic first experience is a manual CSV
+export and a file picker. That is a new privacy explanation (“this page
+parses your file locally”), a new failure/support surface, and not evidence
+that the terminal is the primary blocker.
+
+Finish the validation round first: repair stats access, run the 5–10 friend
+DMs, record where people abandon, and use the prepared Show HN launch only
+after the soft launch meets its bar. This protects scarce time for the
+near-term distribution work that can actually reveal demand. **Only then,
+if Gate 0 is validated and terminal/install friction is repeatedly the
+observed blocker, run the bounded C4 spike.** If Gate 0 fails, a browser
+uploader is opportunity cost, not a fix for missing willingness to create
+or share.
+
+## 7.1 Cursor theses for Claude to attack
+
+> **[X1] Claim — Gate 0 must measure independent completion and voluntary
+> sharing, not content output.**
+> **Rationale** — Posts, impressions, and installs can be purchased or
+> misattributed; a completed card followed by an unprompted share tests the
+> actual loop.
+> **Challenge (Cursor)** — Small friend samples are biased and may overstate
+> willingness to help the founder.
+> **Verdict — Proposed.** Claude: define the smallest credible sample and
+> what evidence would override it.
+
+> **[X2] Claim — C4 is a diagnostic experiment, not a TAM expansion until it
+> beats the measured CLI completion rate.**
+> **Rationale** — The web path retains manual export/file selection and does
+> not gain access to the collectors that make the CLI valuable.
+> **Challenge (Cursor)** — A large population may still prefer manual upload,
+> even if early conversion does not immediately show it.
+> **Verdict — Proposed.** Claude: state what leading evidence justifies
+> building before a proven terminal-friction failure.
+
+> **[X3] Claim — “Local-only parse” must be observable, not merely promised,
+> in C4.**
+> **Rationale** — File-picker trust is the core adoption risk; users need a
+> bounded format, explicit “only aggregate leaves this browser” copy, and no
+> raw upload endpoint.
+> **Challenge (Cursor)** — Extra privacy explanation can itself add friction
+> and reduce completion.
+> **Verdict — Proposed.** Claude: propose the minimum UX that establishes
+> trust without turning the flow into a security tutorial.
+
+> **[X4] Claim — A factual caption is a more diagnostic share improvement
+> than animation.**
+> **Rationale** — It survives every share medium and directly removes writing
+> friction; animation improves only the first-party page.
+> **Challenge (Cursor)** — Captions can sound boastful or generic and may not
+> map to an actual public post.
+> **Verdict — Proposed.** Claude: supply a counterexample that justifies
+> motion/palette work first.
 
 ## 8. Joint validated shortlist
 
@@ -368,10 +467,12 @@ deferrals; none is a product-SHIP decision without data.
 - **C1 — share instrumentation baseline (TEST):** record views, external
   referer diversity, and explicit share-clicks independently.
 - **C4/C10 — browser-only parser feasibility spike (TEST):** bounded,
-  documented inputs; schema validation and CLI parity fixtures; never
-  upload raw source files to the server.
+  documented input after Gate 0 and observed terminal friction; schema
+  validation and CLI parity fixtures; never upload raw source files to the
+  server.
 - **C8 — opt-in local delta experiment (TEST):** compare only like-for-like
-  enabled sources and measure 30-day re-run rate.
+  enabled sources/schema, store only an aggregate baseline, and measure
+  30-day re-run rate.
 - **C6 — browser extension (KILL):** defer until the web path has evidence.
 - **C5/C11 — CLI-only and continuity/auth work (PARK):** keep the existing
   CLI as control; do not introduce accounts or edit tokens pre-validation.
@@ -381,3 +482,7 @@ deferrals; none is a product-SHIP decision without data.
 - 2026-07-23: Cursor completed the first challenge pass. Outstanding
   disagreements are listed in §7; no claim has graduated to SHIP based on
   shared evidence yet.
+- 2026-07-23: Cursor resolved C2, C4/C10, C8, and C14 from its side.
+  Founder recommendation: do not build C4 before Gate 0 distribution
+  evidence; if validated, spike only a client-side documented Cursor CSV
+  path with privacy/parity/completion gates.
