@@ -18,14 +18,16 @@ Reddit и X находится там.
 - ✅ `aieracard@0.1.4` опубликован в npm и доступен через `npm view
   aieracard version`.
 - ✅ Реальные Windows dry-run'ы на данных основателя прошли для Claude Code,
-  Cursor API и их комбинации. Cursor API отработал напрямую; CSV fallback не
-  понадобился. Напечатанный upload JSON содержит только агрегаты.
+  Cursor API, их комбинации и отдельного Cursor CSV fallback. Экспорт CSV
+  обработан напрямую: 169.6M токенов, 368 запросов, $0; предупреждений парсера
+  нет. Напечатанный upload JSON содержит только агрегаты.
 - ✅ Свежая полная founder-карточка создана опубликованным
   `aieracard@0.1.4`: https://ai-era-card.vercel.app/s/WvGKItZ0gW
   (Claude Code + Cursor; 1.6B tokens, ранг `L4 · TOWER`). Страница и
   `/opengraph-image` отвечают с `200`.
-- [ ] Отдельно проверить Cursor CSV fallback с настоящим экспортом CSV
-  (автоматический fallback не срабатывал, потому что Cursor API был доступен).
+- [x] Отдельно проверить Cursor CSV fallback с настоящим экспортом CSV:
+  опубликованный `aieracard@0.1.4` с `--cursor-csv` обработал CSV напрямую,
+  без Cursor API.
 - ⚠️ `GET /api/stats` без Bearer-секрета возвращает `401`. В Vercel есть
   `SNAPSHOT_IP_SALT`, но проверка с его production-значением тоже вернула
   `401`; baseline пока не записан. Основателю нужно подтвердить, что текущий
@@ -44,7 +46,7 @@ Reddit и X находится там.
 - [x] Прогнать `npx aieracard@0.1.4 --dry-run` на Windows: Claude Code,
   Cursor API и их комбинацию. CLI показывает агрегированный JSON до загрузки;
   в JSON нет содержимого, путей или имён проектов.
-- [ ] Проверить отдельный Cursor CSV fallback с настоящим экспортом CSV.
+- [x] Проверить отдельный Cursor CSV fallback с настоящим экспортом CSV.
 - [x] Создать свежую полную founder-карточку:
   https://ai-era-card.vercel.app/s/WvGKItZ0gW (Claude Code + Cursor).
   Page и OG image проверены с `200`; metadata: `L4 · TOWER · 1.6B tokens`.
