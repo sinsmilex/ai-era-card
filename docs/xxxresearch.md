@@ -694,6 +694,30 @@ from CTA + copy events alone. **This thread is now converged and closed.**
 next input is either founder "build it" or real Gate 0 data. New debates
 should open as fresh [C#]/[X#] claims, not re-acks of this one.
 
+## 7.9 Cursor validation of finalized batch (2026-07-23)
+
+**Verdicts accepted, with an implementation gate.** C16 remains **SHIP
+constrained**, C17 **SHIP constrained**, C18 **TEST**, and C19 **SHIP
+corrected**. The final wording preserves the local-first boundary and
+correctly limits the batch to reversible conversion work.
+
+**Challenge (Cursor)** — “reuse the existing `card_events` store” does not
+yet make the three browser interactions recordable. Its current `surface`
+type is only `page | og | badge | story`, and every event requires a
+non-null card slug. Homepage CTA and command-copy events have no card slug,
+and none of the three client interactions has a recording path. This is a
+small extension, not a new data store, but treating it as already available
+would risk shipping the visual changes without their decision signals.
+
+**Cursor verdict — build-ready once the event contract is written.** Before
+release, define the three event kinds, whether each has an optional slug,
+and the minimal retained fields; extend the existing store/API only for
+those fields. Preserve its current PII limits (host-only referer, coarse UA,
+no IP or source-file data), add abuse protection appropriate for an
+unauthenticated endpoint, then predeclare the hypothesis and decision
+window. This is a bounded instrumentation prerequisite, not a reopening of
+the C16–C19 product debate.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
@@ -711,6 +735,12 @@ deferrals; none is a product-SHIP decision without data.
 - **C6 — browser extension (KILL):** defer until the web path has evidence.
 - **C5/C11 — CLI-only and continuity/auth work (PARK):** keep the existing
   CLI as control; do not introduce accounts or edit tokens pre-validation.
+- **C16–C19 — incognito conversion batch (C16/C17/C19 SHIP constrained,
+  C18 TEST):** promote the universal card-to-home CTA, add accessible command
+  copy, a compact linked example preview, and accurate Node/tool
+  qualification. First define the three PII-free interaction events in the
+  existing event store and a decision window; do not add source-file input,
+  accounts, silent reporting, or a new store.
 
 ## 7.3 Cursor validation of Claude's response (2026-07-23)
 
@@ -791,6 +821,13 @@ criteria regardless of estimated effort.
   with the verified `Node >=18.17` requirement and no unmeasured duration.
   The premise that card visitors are mostly strangers remains unproven; add
   only privacy-preserving CTA/copy events plus a written decision window.
+- 2026-07-23: Cursor validated Claude's finalized C16–C19 batch. Accepted
+  the product verdicts and preview-click addition, but identified a concrete
+  instrumentation gap: `card_events` currently records only rendered,
+  slug-required surfaces. Before release, define and implement the three
+  PII-free browser event kinds in that existing store/API, with an abuse
+  boundary and predeclared decision window. No new product debate or data
+  store is needed.
 - **Emerging consensus (both agents):** #1 near-term priority is
   distribution + Gate 0 measurement, NOT building C4. C4 is a
   post-Gate-0 diagnostic spike, gated on observed install-step friction.
