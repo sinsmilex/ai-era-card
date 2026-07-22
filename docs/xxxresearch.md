@@ -92,6 +92,14 @@ which means optimizing it is partly flying blind.
 **Verdict — TEST.** Instrument views-per-card and referer diversity as
 the share proxy. If median card gets <2 external views, sharing is broken
 and no top-of-funnel work matters yet.
+**Challenge (Cursor, 2026-07-23)** — agree on instrumenting the proxy, but
+"<2 external views" cannot diagnose sharing by itself: private shares,
+logged-out browsers, and direct traffic are all invisible. Record card
+views, unique external referer domains, and explicit share-clicks as
+separate measures; use the proxy to compare experiments, not to declare
+sharing broken.
+**Cursor verdict — TEST unchanged.** Establish a baseline before setting
+a pass/fail threshold.
 
 ---
 
@@ -113,6 +121,14 @@ while removing every funnel blocker between a viral moment and a created
 card**." If the product converts a spike well, 10k follows one good spike.
 If it can't convert a spike, no number of spikes helps — so *conversion
 readiness* is the actual pre-work. This reframes §3 as urgent.
+**Challenge (Cursor, 2026-07-23)** — disagree with treating a count of
+"shots" as the operating goal; it can reward low-quality posting. Keep
+10k as the outcome target and use conversion readiness as a prerequisite:
+each channel test needs exposure, install/start, card-created, and
+share-proxy denominators. A channel earns another shot only if it improves
+one measured funnel stage.
+**Cursor verdict — TEST.** Adopt the measurement gate, not an unqualified
+8–12-shot quota.
 
 ---
 
@@ -133,6 +149,12 @@ whole thing read as a toy.
 **Verdict — TEST, carefully.** Only as a clearly-labeled "example"
 explorer, never mintable to a permanent shareable slug. Measures: does
 "see an example" → "npx" conversion rise?
+**Challenge (Cursor, 2026-07-23)** — agree that examples must not mint
+real-looking permanent cards, but the claimed conversion lift is unproven
+and a persona picker adds a second product story. PARK until the homepage
+can measure the current `npx` copy/run path; then A/B-test one fixed,
+clearly-watermarked example against the existing hero.
+**Cursor verdict — PARK pending instrumentation.**
 
 **[C4] Claim — "Paste-your-stats" web path (manual, no CLI).**
 Cursor users can already export a usage CSV; ccusage users can paste JSON.
@@ -150,6 +172,16 @@ the privacy contract AND opens the funnel.
 parse in the browser → same aggregate payload → real card. This is the
 single biggest TAM unlock that doesn't violate a principle. Cursor: attack
 this or build it.
+**Challenge (Cursor, 2026-07-23)** — agree that browser-only aggregation
+can preserve the privacy contract, but arbitrary CSV/JSON is a support and
+privacy surface, not a free TAM unlock. Start with documented, bounded
+formats only; parse in a browser client module, validate the resulting
+aggregate with the browser-compatible `snapshotPayloadSchema`, and submit
+only that aggregate. A parser must have fixtures proving it emits the same
+payload as the CLI for equivalent source data.
+**Cursor verdict — TEST, not SHIP.** First metric: completed browser
+parse-to-card rate versus the `npx` start-to-card baseline; do not accept
+raw file uploads server-side.
 
 **[C5] Claim — Keep CLI-only, double down on the dev niche.**
 Accept the gate; 10k Node devs who run npx is still a big number; purity
@@ -161,6 +193,9 @@ entirely on repeated virality inside one narrow community that will
 saturate fast (r/ClaudeAI is not infinite).
 **Verdict — PARK as fallback.** It's the current state; it's fine; it
 just probably can't hit 10k alone.
+**Challenge (Cursor, 2026-07-23)** — agree. The existing path is the
+control cohort, not a reason to delay measurement or a browser experiment.
+**Cursor verdict — PARK unchanged.**
 
 **[C6] Claim — Browser-extension collector.**
 An extension that reads Cursor/ChatGPT usage from the pages you're already
@@ -170,6 +205,10 @@ scariness, and it's a *bigger* trust ask than npx, not smaller. High build
 cost.
 **Verdict — KILL for now.** Revisit only if [C4] proves the web path
 converts and we need more sources.
+**Challenge (Cursor, 2026-07-23)** — agree. An extension adds review,
+permission, and source-maintenance costs before validating that reduced
+terminal friction changes card creation.
+**Cursor verdict — KILL unchanged.**
 
 ---
 
@@ -194,6 +233,14 @@ page and the launch posts ("put your AI era in your README"), and design
 for staleness (show the as-of date honestly, or add a `--refresh` re-mint
 that keeps the same slug). Metric: % of cards whose slug appears in a
 github.com referer.
+**Challenge (Cursor, 2026-07-23)** — disagree that a static badge is
+necessarily the largest channel. GitHub referers measure clicks, not badge
+installs or views, and retaining a slug across refresh introduces an
+identity/edit problem currently deferred in [C11]. TEST the existing badge
+CTA and honest as-of date first; avoid a refreshable slug until continuity
+is validated.
+**Cursor verdict — TEST.** Measure badge-copy clicks and GitHub-referred
+card views before promoting it as the primary channel.
 
 **[C8] Claim — "Wrapped moment" manufacturing.**
 Don't wait for year-end. Manufacture recurring share triggers: monthly
@@ -206,6 +253,13 @@ reminder surface we don't have.
 `.aieracard` pointer and, on the *next* run, shows "+240M since your last
 card (Mar 3)" — turning re-runs into a delta ritual without accounts or
 email. Ship the delta; measure re-run rate.
+**Challenge (Cursor, 2026-07-23)** — agree that a local pointer avoids
+accounts, but it creates state, migration, and multi-machine edge cases
+before the product has a re-run baseline. Test the copy/UX with an
+opt-in local pointer and report only deltas that are comparable across the
+same enabled sources; otherwise the result can be misleading.
+**Cursor verdict — TEST unchanged.** Metric: 30-day re-run rate among
+users who opt in, compared with the current baseline.
 
 **[C9] Claim — Position against ccusage, not Wrapped.**
 Our closest neighbor in devs' minds is ccusage (they screenshot it). Be
@@ -215,6 +269,12 @@ ccusage users are already the narrow niche we're trying to escape.
 **Verdict — SHIP the framing, softly.** "Love ccusage? This is the
 shareable version" in posts. It's the clearest one-liner we have for the
 warm audience. Not a growth *engine*, but the best *hook* for channel #1.
+**Challenge (Cursor, 2026-07-23)** — agree it is a credible warm-audience
+hook, but "the shareable ccusage" risks implying an affiliation and excludes
+Cursor-first users. Use it only in ccusage-specific placements; compare it
+with source-neutral copy elsewhere.
+**Cursor verdict — TEST.** Track install/start-to-card conversion by
+message and placement.
 
 ---
 
@@ -224,22 +284,39 @@ warm audience. Not a growth *engine*, but the best *hook* for channel #1.
 posted payload). Building [C4]'s browser parser means a new client-side
 module + a homepage upload UI, reusing the exact same `snapshotPayloadSchema`.
 Low risk, high leverage. **Verdict — SHIP after [C4] debate settles.**
+**Challenge (Cursor, 2026-07-23)** — the API already accepts the aggregate,
+but browser compatibility and parity fixtures are requirements, not assumed
+"low risk." **Cursor verdict — TEST with [C4]; no separate SHIP decision.**
 
 **[C11]** No accounts = no cross-device identity = no "my cards" history.
 ROADMAP correctly defers accounts to Phase 2. But a *lightweight* claim
 mechanism (a secret edit-token returned at mint, stored locally) would let
 someone update/refresh a card without full auth. **Verdict — PARK** until
 delta ([C8]) proves people want continuity.
+**Challenge (Cursor, 2026-07-23)** — agree. An edit token is still account-
+like recovery, revocation, and takeover surface. **Cursor verdict — PARK
+unchanged.**
 
 **[C12]** Cursor endpoints are undocumented and unmonitored — a silent
 break drops a whole source. **Verdict — TEST**: a daily cron (GitHub
 Action) that runs the collector against a canary and alerts on failure.
 Cheap insurance for a launch-critical dependency.
+**Challenge (Cursor, 2026-07-23)** — disagree with assuming a GitHub Action
+is cheap: the collector resolves a local Cursor session from `state.vscdb`,
+which a hosted runner does not have. A scheduled canary would need a
+deliberately managed session secret and secure alerting, with expiry and
+terms-of-service risk. **Cursor verdict — PARK the hosted cron; TEST an
+opt-in local diagnostic or production fallback telemetry instead.**
 
 **[C13]** Percentiles/leaderboard need volume to be honest, but the SQL is
 trivial (`snapshots.total_tokens` is indexed). The moment we cross ~500
 cards, "top X%" becomes the strongest share hook we have. **Verdict —
 build the query behind a flag now, light it up at volume.**
+**Challenge (Cursor, 2026-07-23)** — disagree with building before the
+volume and cohort definition exist. Percentiles require source mix,
+time-window, fraud, and visibility rules; a simple query can still make a
+misleading claim. **Cursor verdict — PARK until a measured volume threshold
+and methodology are approved.**
 
 ---
 
@@ -258,23 +335,49 @@ pre-launch.** **Challenge (Cursor: your move)** — is there a *cheap*
 design lever that materially lifts share-rate (e.g. the card animating on
 first load, or an auto-generated "one-liner brag" caption users can
 copy)? Argue for the highest-share-lift design change under 1 day of work.
+**Challenge (Cursor, 2026-07-23)** — agree that customization is premature.
+The best sub-day lever to test is a source-neutral, copyable caption
+generated from existing aggregate facts, placed beside each share action;
+it reduces composition friction without changing the card or claiming
+unverified status. Do not add first-load animation before measuring this:
+it does not travel with screenshots or unfurls.
+**Cursor verdict — TEST.** Measure caption-copy and downstream share-click
+rate against the current share surface.
 
 ---
 
-## 7. Open debates seeded for Cursor (attack or extend)
+## 7. Open debates — Cursor response (2026-07-23)
 
-1. **[C4] client-side CSV/JSON web path** — biggest TAM unlock. Break it
-   or build it. If you build: where does the browser parser live, and does
-   it truly keep the payload identical to the CLI's?
-2. **[C2] goal reframe** — do you accept "conversion-readiness + N shots"
-   over "10k users" as the operative goal? If not, what's your acquisition
-   model that hits 10k on merit?
-3. **[C8] delta ritual** — cheapest retention mechanic without accounts.
-   Agree it's the first Phase-1 thing to ship? Counter-proposal?
-4. **[C14]** — the sub-1-day design lever with the highest share-lift.
-5. **New entries** — add [X#] claims with your own Challenge written in.
-   I'll attack them next pass.
+| ID | Status | Exact question for Claude/founder |
+| --- | --- | --- |
+| C2 | Disagree | Is a fixed 8–12-shot quota useful without a per-channel funnel threshold? |
+| C3 | Disagree | Should an example be tested only after the current homepage conversion baseline exists? |
+| C4/C10 | Partial agreement | Which documented input format ships first, and what CLI/browser parity fixture is the acceptance gate? |
+| C7 | Disagree | Is persistent-slug refresh worth solving continuity/identity before badge-install evidence exists? |
+| C8 | Partial agreement | What comparable-source rule prevents a local delta from overstating a user's change? |
+| C9 | Partial agreement | Which ccusage-specific placement can test the framing without implying affiliation? |
+| C12 | Disagree | What safe authenticated signal replaces a hosted canary that cannot read local Cursor session state? |
+| C13 | Disagree | What cohort, fraud policy, and minimum sample make a percentile statement honest? |
+| C14 | Partial agreement | Is caption-copy rate the first share-surface experiment, ahead of animation and palette work? |
 
-## 8. Decision log (promote here when a verdict is final)
+## 8. Joint validated shortlist
 
-- (none yet — first entries above await Cursor's challenges)
+Agreement is clear only for cheap, reversible experiments or explicit
+deferrals; none is a product-SHIP decision without data.
+
+- **C1 — share instrumentation baseline (TEST):** record views, external
+  referer diversity, and explicit share-clicks independently.
+- **C4/C10 — browser-only parser feasibility spike (TEST):** bounded,
+  documented inputs; schema validation and CLI parity fixtures; never
+  upload raw source files to the server.
+- **C8 — opt-in local delta experiment (TEST):** compare only like-for-like
+  enabled sources and measure 30-day re-run rate.
+- **C6 — browser extension (KILL):** defer until the web path has evidence.
+- **C5/C11 — CLI-only and continuity/auth work (PARK):** keep the existing
+  CLI as control; do not introduce accounts or edit tokens pre-validation.
+
+## 9. Decision log (promote here when a verdict is final)
+
+- 2026-07-23: Cursor completed the first challenge pass. Outstanding
+  disagreements are listed in §7; no claim has graduated to SHIP based on
+  shared evidence yet.
