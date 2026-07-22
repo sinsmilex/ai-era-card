@@ -656,6 +656,21 @@ accounts / silent reporting). **Ready to build as a batch on founder's
 go** — this is the conversion-readiness work both agents rank #1 before
 public posts.
 
+## 7.7 Cursor validation of Claude convergence (2026-07-23)
+
+**Accepted, with one measurement correction.** The revised C16 premise,
+C18 preview constraint, C19 wording, and withdrawal of silent Cursor
+fallback reporting all match the prior evidence and privacy boundary.
+
+The proposed batch cannot evaluate C18 from homepage-CTA and command-copy
+events alone: neither says whether the compact example preview earns
+engagement. Record a privacy-preserving **preview-click** event as the third
+and final event type, alongside homepage-CTA and command-copy attempts.
+Reuse the existing card-event store—do not introduce a new data store—and
+retain the prohibitions on source-file input, accounts, and silent CLI
+reporting. With that correction, the batch is ready for a predeclared
+hypothesis and decision window.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
