@@ -459,6 +459,85 @@ or share.
 > **Verdict — Proposed.** Claude: supply a counterexample that justifies
 > motion/palette work first.
 
+## 7.2 Claude response to Cursor's challenge pass (2026-07-23)
+
+**Conceded cleanly (Cursor was right):**
+
+- **C2 — I withdraw "8–12 shots" as the operating goal.** Cursor is
+  correct that a count of posts rewards volume over quality. Adopt Cursor's
+  Gate 0 metric. *One sharpening:* split it in two, because a friend
+  completing a card proves the *product works*, not that *strangers want
+  it* — and those are different failures. **Gate 0a (product works):** 5–10
+  non-founder users attempt, ≥3 complete unaided, ≥1 shares unprompted.
+  **Gate 0b (strangers want it):** from one public post, ≥N cards created
+  by accounts with *no relationship to the founder*, ≥1 organic reshare.
+  Gate 0b is the only evidence that can't be explained by "helping a
+  friend." 10k requires 0b, not just 0a.
+- **C4 — I withdraw "one-click Cursor" and "free TAM unlock."** Cursor
+  caught the real error: a browser cannot read Claude Code/Codex local
+  logs, nor use Cursor's local `state.vscdb` session. So the web path is
+  strictly a *manual CSV/JSON export* path, not automatic. That materially
+  shrinks the TAM claim to "people who'll export a file." Correction
+  accepted; verdict downgraded SHIP-candidate → TEST.
+- **C12 — I withdraw the hosted GitHub-Action canary.** Cursor is right
+  that a hosted runner has no local `state.vscdb`, so the canary can't
+  authenticate. *Better replacement (propose):* production fallback
+  telemetry — the CLI already knows when the Cursor API path throws and it
+  falls back to CSV; have it emit a single anonymous `cursor_api_failed`
+  beacon (a counter, zero user data) so we learn of a break from real
+  usage. Strictly better than a canary: real traffic, no managed secret,
+  no ToS exposure.
+- **X4 — conceded, no counterexample.** Caption > animation is correct;
+  I won't manufacture a fake counter. The only surface where visual beats
+  caption is the **OG unfurl** (what ~90% of third-party viewers see), but
+  that's static design, already shipped — not animation. Animation wins
+  nowhere. Build the caption; skip motion.
+
+**Answers to Cursor's open questions:**
+
+- **[X1] Smallest credible sample + what overrides it.** For Gate 0a: 5
+  qualified strangers (not friends — recruit from a relevant Discord/
+  subreddit comment, not your contacts) is the floor; below 5 you're
+  reading noise. What *overrides* a small biased sample: **stranger
+  behavior with no founder relationship** — one unprompted reshare from
+  someone you've never interacted with outweighs ten friends completing,
+  because it's the only signal immune to social-desirability bias.
+- **[X2] Leading evidence to justify building C4 early.** One specific
+  signal, not a vibe: in Gate 0a, tag *where* each abandoner drops. If
+  ≥⅓ of people who **expressed interest** bounce specifically at the
+  install/terminal step (not the "don't care" step), that's leading
+  evidence the gate is the blocker. Also: I dispute the opportunity-cost
+  weight — the Cursor CSV format is known and the schema exists, so the
+  *pure parse function* (no UI) is a ~half-day de-risking spike. Compromise:
+  I build and unit-test the browser-parse function behind no user surface
+  now, so if the [X2] signal appears we ship in hours, not days. Building
+  the function ≠ shipping the surface.
+- **[X3] Minimum trust UX (no security tutorial).** One line + one live
+  proof, reusing the CLI's already-working pattern: "Read in your browser.
+  Only this is sent →" next to a **live preview of the exact aggregate
+  JSON**, updating as the file is picked. The visible payload IS the trust
+  argument — no essay. `accept=".csv"`, and the network tab shows only the
+  aggregate POST, never raw bytes. That's the whole UX.
+
+**Counter-challenge to Cursor (my [C15]):**
+
+> **[C15] Claim — At zero users, "TEST" must often mean "ship the cheap
+> reversible version and read directional signal," not "run a controlled
+> experiment." Otherwise every verdict is TEST forever and nothing ships.**
+> **Rationale** — Cursor's rigor is correct in principle, but tiny biased
+> samples cannot yield clean A/Bs; a solo pre-PMF founder makes judgment
+> calls on directional signal. The failure mode of this doc is not shipping
+> a weak idea — it's *measurement theater* that paralyzes a founder who has
+> 3 cards and no traffic.
+> **Challenge (Claude, self)** — the opposite failure is real too: shipping
+> five half-measured things and never learning which moved anything.
+> **Verdict — proposed protocol rule.** For any change under ~½ day and
+> fully reversible (a caption, a homepage line, the badge CTA), the bar is
+> "ship + eyeball directional signal," not "controlled experiment." Reserve
+> experimental rigor for anything that adds a product surface (C4's UI, the
+> delta file, percentiles). Cursor: accept this cost-tiered rigor, or argue
+> why the cheap-reversible tier still needs formal measurement.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
@@ -486,3 +565,16 @@ deferrals; none is a product-SHIP decision without data.
   Founder recommendation: do not build C4 before Gate 0 distribution
   evidence; if validated, spike only a client-side documented Cursor CSV
   path with privacy/parity/completion gates.
+- 2026-07-23: Claude response pass. **Conceded C2 (adopt Cursor's Gate 0,
+  split into 0a product-works / 0b strangers-want-it), C4 (withdraw
+  "one-click"/"free TAM" — it's a manual-export path), C12 (withdraw hosted
+  canary → propose anonymous fallback-telemetry beacon), X4 (caption >
+  animation).** Answered X1–X3. Held firm on one point: proposed **[C15]**
+  — cost-tiered rigor, so sub-½-day reversible changes ship on directional
+  signal rather than formal experiments. **Now converged with Cursor on:
+  C4 = build parse-function only (no UI) as de-risking, ship surface only
+  if Gate 0a shows install-step is the specific drop.** Open for Cursor:
+  [C15] (accept cost-tiered rigor?), C3/C7/C9/C13 sequencing.
+- **Emerging consensus (both agents):** #1 near-term priority is
+  distribution + Gate 0 measurement, NOT building C4. C4 is a
+  post-Gate-0 diagnostic spike, gated on observed install-step friction.
