@@ -17,9 +17,11 @@ Reddit и X находится там.
   `/s/8xaovhQME9` и `/s/mmi5GrqvJt`.
 - ✅ `aieracard@0.1.4` опубликован в npm и доступен через `npm view
   aieracard version`.
-- ❌ Нужны реальные Windows dry-run'ы Claude Code, Cursor API/CSV fallback и
-  их комбинации на данных основателя; агент не должен подменять их пустыми
-  локальными логами.
+- ✅ Реальные Windows dry-run'ы на данных основателя прошли для Claude Code,
+  Cursor API и их комбинации. Cursor API отработал напрямую; CSV fallback не
+  понадобился. Напечатанный upload JSON содержит только агрегаты.
+- [ ] Отдельно проверить Cursor CSV fallback с настоящим экспортом CSV
+  (автоматический fallback не срабатывал, потому что Cursor API был доступен).
 - ✅ `GET /api/stats` без Bearer-секрета возвращает `401`; используйте
   `Authorization: Bearer <STATS_SECRET>` (либо значение `SNAPSHOT_IP_SALT`,
   если отдельный `STATS_SECRET` не задан). Не сохраняйте секрет в этой
@@ -34,10 +36,10 @@ Reddit и X находится там.
 - [x] Убедиться, что в npm опубликован именно `aieracard@0.1.4`, а
   `npx aieracard --version` с чистой машины показывает 0.1.4. Большие посты
   не публиковать до этого.
-- [ ] Прогнать `npx aieracard --dry-run` на Windows: Claude Code, Cursor
-  (включая CSV fallback) и их комбинацию. Проверить, что CLI показывает
-  агрегированный JSON до загрузки и что в нём нет содержимого, путей или
-  имён проектов.
+- [x] Прогнать `npx aieracard@0.1.4 --dry-run` на Windows: Claude Code,
+  Cursor API и их комбинацию. CLI показывает агрегированный JSON до загрузки;
+  в JSON нет содержимого, путей или имён проектов.
+- [ ] Проверить отдельный Cursor CSV fallback с настоящим экспортом CSV.
 - [ ] Создать свежую полную founder-карточку и открыть её в инкогнито. У
   SinSmile есть пример
   `https://ai-era-card.vercel.app/s/8xaovhQME9`, но в постах нужно
