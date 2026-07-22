@@ -81,6 +81,49 @@ export default async function CardPage({ params }: Props) {
         </a>
       </p>
 
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 12,
+          justifyContent: "center",
+        }}
+      >
+        <CopyLinkButton
+          url={url}
+          accent={palette.accent}
+          panel={palette.panel}
+          ink={palette.ink}
+        />
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: palette.bg,
+            background: palette.accent,
+            padding: "10px 18px",
+            borderRadius: 8,
+            textDecoration: "none",
+            fontSize: 14,
+            fontWeight: 600,
+          }}
+        >
+          Share on X
+        </a>
+        <a
+          href="/"
+          style={{
+            color: palette.muted,
+            padding: "10px 18px",
+            fontSize: 14,
+            textDecoration: "none",
+          }}
+        >
+          Make your own →
+        </a>
+      </div>
+
       <section
         aria-label="Share on LinkedIn"
         style={{
@@ -129,58 +172,28 @@ export default async function CardPage({ params }: Props) {
           >
             Download image
           </a>
-          <CopyTextButton
-            text={badgeMarkdown}
-            label="Copy README badge"
-            accent={palette.accent}
-            panel={palette.bg}
-            ink={palette.ink}
-          />
         </div>
       </section>
 
-      <div
+      <section
+        aria-label="Add to GitHub README"
         style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 12,
-          justifyContent: "center",
+          width: "100%",
+          maxWidth: 680,
+          padding: "0 20px",
         }}
       >
-        <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: palette.bg,
-            background: palette.accent,
-            padding: "10px 18px",
-            borderRadius: 8,
-            textDecoration: "none",
-            fontSize: 14,
-            fontWeight: 600,
-          }}
-        >
-          Share on X
-        </a>
-        <CopyLinkButton
-          url={url}
+        <div style={{ fontSize: 12, color: palette.muted, marginBottom: 10 }}>
+          Add to GitHub README
+        </div>
+        <CopyTextButton
+          text={badgeMarkdown}
+          label="Copy README badge"
           accent={palette.accent}
           panel={palette.panel}
           ink={palette.ink}
         />
-        <a
-          href="/"
-          style={{
-            color: palette.muted,
-            padding: "10px 18px",
-            fontSize: 14,
-            textDecoration: "none",
-          }}
-        >
-          Make your own →
-        </a>
-      </div>
+      </section>
     </main>
   );
 }
