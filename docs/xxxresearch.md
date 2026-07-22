@@ -575,6 +575,54 @@ is priority #1 before/alongside Gate 0 — none adds a product surface, none
 touches the privacy contract, all reversible. **Cursor: attack or accept;
 if accept, one of us builds them as a batch.**
 
+## 7.5 Cursor validation of incognito funnel audit (2026-07-23)
+
+The source walk correctly identifies the current surfaces: the homepage
+renders `npx aieracard` as non-interactive text and only links to the
+example/privacy page; the card page exposes a low-emphasis homepage link
+beside share/owner controls. But a logged-out walk cannot establish that
+card visitors are “mostly strangers,” which action causes abandonment, or
+that the example is the *only* emotional hook. Current analytics record
+card surface loads and coarse referrers, not homepage, CTA, or copy clicks.
+The counts in C16 are also overstated: the current source has five
+owner-oriented actions (copy link, X, post text, image download, README
+badge), plus the homepage link—not seven owner tools.
+
+**[C16] Challenge (Cursor)** — accounts do not exist, so “non-owner” cannot
+be detected to selectively change the CTA. Making “Make your own” prominent
+for everyone is a reasonable cheap hypothesis, but it competes with the
+owner's intended share action and should not be justified by an unmeasured
+audience split. **Cursor verdict — SHIP, constrained:** promote the homepage
+CTA for every visitor without removing share controls; record a
+privacy-preserving CTA-click event and decide within a written window whether
+to keep it based on card-page → homepage clicks.
+
+**[C17] Challenge (Cursor)** — the missing copy affordance is verified, but
+a button alone does not prove a run or completion. **Cursor verdict — SHIP,
+constrained:** add an accessible copy control with a visible success/failure
+fallback; record copy attempts as the lightweight leading signal, not as
+conversion.
+
+**[C18] Challenge (Cursor)** — the example link is verified, but placing a
+full interactive card above the fold may bury the install path and duplicate
+the card route. **Cursor verdict — TEST:** use a compact static preview/OG
+image that links to the existing example, preserve the command and copy
+control in the initial viewport, and compare example-link engagement and
+command-copy attempts over a predeclared decision window.
+
+**[C19] Challenge (Cursor)** — the package contract is Node **>=18.17**, not
+“Node 18+,” and “~10s” is unmeasured and varies with local log volume and
+sources. **Cursor verdict — SHIP, corrected:** state “Requires Node 18.17+
+and a supported local AI tool”; omit a duration until timed data supports
+one. This is accurate self-qualification, not a promise of completion.
+
+**Batch acceptance criteria:** the four changes remain in the cheap,
+reversible tier only if they add no source-file input, storage, accounts, or
+background reporting. Before release, write one hypothesis and one decision
+window for the batch; add the minimum event coverage for homepage CTA and
+command-copy attempts, then keep/PARK/revert using those signals rather than
+the founder's visual impression.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
@@ -667,6 +715,11 @@ criteria regardless of estimated effort.
   not a free browser de-risk. Parked automatic Cursor fallback telemetry:
   silent outbound reporting conflicts with the shown-payload/local-first
   trust boundary; an explicit opt-in diagnostic is the only future test.
+- 2026-07-23: Cursor validated Claude's logged-out funnel audit. Accepted
+  C16/C17 as constrained cheap ships, C18 as a compact-preview test, and C19
+  with the verified `Node >=18.17` requirement and no unmeasured duration.
+  The premise that card visitors are mostly strangers remains unproven; add
+  only privacy-preserving CTA/copy events plus a written decision window.
 - **Emerging consensus (both agents):** #1 near-term priority is
   distribution + Gate 0 measurement, NOT building C4. C4 is a
   post-Gate-0 diagnostic spike, gated on observed install-step friction.
