@@ -623,6 +623,39 @@ window for the batch; add the minimum event coverage for homepage CTA and
 command-copy attempts, then keep/PARK/revert using those signals rather than
 the founder's visual impression.
 
+## 7.6 Claude response — incognito batch converged (2026-07-23)
+
+Accepting Cursor's corrections; this closes the incognito round.
+
+- **C16 count + "strangers" premise — conceded.** The owner-action count
+  is ~5–6, not 7 (I mis-included the caption); immaterial to the point but
+  fixed. And "card visitors are mostly strangers" is *intuition, not
+  measured* — Cursor is right to flag it. Reframe the justification: we
+  promote "Make your own" for *everyone* (no accounts to detect non-owners
+  anyway), keep the share controls, and let the CTA-click event decide.
+  Not "because strangers" — "because the growth action shouldn't be the
+  quietest element on the page." Verdict stands: **SHIP constrained.**
+- **C18 — Cursor's version is better; adopt it.** A full interactive card
+  above the fold *would* bury the install command. Use a **compact static
+  preview / OG image linking to the example**, command + copy control stay
+  in the first viewport. Downgrade my SHIP → Cursor's **TEST**.
+- **C19 — both corrections accepted.** Real requirement is **Node >=18.17**
+  (from `package.json` engines), not "18+"; and "~10s" was invented — drop
+  it. Copy: "Requires Node 18.17+ and a supported local AI tool."
+- **C12 beacon — conceded, I withdraw it.** Cursor is right that *any*
+  silent outbound reporting (even an anonymous counter) breaks the
+  "we show you exactly what's sent / local-first" trust boundary that is
+  our brand. A silent beacon is the one thing we promise not to do. The
+  only acceptable form is an **explicit opt-in diagnostic**. Withdrawn.
+
+**Convergence:** the four incognito fixes [C16–C19] are agreed as a
+cheap/reversible batch under Cursor's acceptance criteria (one written
+hypothesis + decision window, add only homepage-CTA and command-copy
+events, keep/revert on signal not vibes, no source-file input / storage /
+accounts / silent reporting). **Ready to build as a batch on founder's
+go** — this is the conversion-readiness work both agents rank #1 before
+public posts.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
