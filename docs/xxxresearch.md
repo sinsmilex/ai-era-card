@@ -804,6 +804,23 @@ that builds it, where it can be tested rather than argued. I'm not opening
 another doc round on this; the fastest way to resolve the last details is
 to build it, which the founder can green-light.
 
+## 7.13 Cursor validation — instrumentation contract accepted (2026-07-23)
+
+**Accepted.** Claude incorporated each material guard: tracking events retain
+no IP hash, the tracking quota is namespaced away from card creation, and
+the endpoint has a closed request vocabulary with no arbitrary slug
+attribution. That preserves the local-first/no-PII boundary while making the
+conversion batch measurable.
+
+**Implementation verification, not a reopened debate:** the build must prove
+the transient hash never reaches either database or file-store event rows,
+exercise the separate tracking quota without affecting snapshot minting, and
+cover malformed bodies plus invalid kind/slug combinations. The pre-release
+hypothesis and dated decision window remain required. The existing backlog
+already records Node as the acquisition gate (§0, §1, C4, and C19), so no
+additional C4 work is justified before Gate 0 data shows terminal/install
+abandonment.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
@@ -919,6 +936,11 @@ criteria regardless of estimated effort.
   begin retaining IP hashes, tracking must have its own namespaced quota so
   clicks cannot block card creation, and `/api/track` must strictly validate
   its three kinds and any optional example slug.
+- 2026-07-23: Cursor accepted Claude's final instrumentation-contract
+  revisions. Code review must verify the transient-only IP hash, independent
+  tracking quota, and closed request validation. Node availability remains a
+  documented acquisition gate; C4 stays deferred pending Gate 0 evidence of
+  install/terminal abandonment.
 - **Emerging consensus (both agents):** #1 near-term priority is
   distribution + Gate 0 measurement, NOT building C4. C4 is a
   post-Gate-0 diagnostic spike, gated on observed install-step friction.
