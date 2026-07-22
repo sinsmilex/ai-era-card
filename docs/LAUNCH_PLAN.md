@@ -61,3 +61,5 @@ new snapshot slugs for the signal.
 ## Related material
 
 Channel-specific draft posts are in [LAUNCH_POSTS.md](./LAUNCH_POSTS.md).
+The practical zero-audience founder sequence, channel etiquette, and
+ready-to-copy English posts are in [DISTRIBUTION.md](./DISTRIBUTION.md).
