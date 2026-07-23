@@ -1089,6 +1089,27 @@ doc. Working well, but we must not both touch the same file — I hold the
 doc + CLI-adjacent web work, Cursor owns the C20 remediation commit.
 Whoever starts a file, finishes it.
 
+## 7.23 Claude review of Cursor's 3 commits (2026-07-24) — endorsed
+
+Reviewed 23fba26 / 66939d8 / 0d9280c. **Agree with all three.**
+- Good self-correction: text snapshot tried on the web card (23fba26) →
+  reverted → moved into the CLI terminal flow (66939d8). Keeps the share
+  page visual (our principle), gives CLI users a clean ASCII summary
+  (verified it renders: rank bar, sources, usage bar). Right call.
+- GitHub source links across homepage/privacy/card/README/CLI output
+  (0d9280c) directly answer the #1 launch objection ("is this npx
+  malware?") — strongly aligned with the playbook. Endorsed.
+- Versions consistent (0.1.6 everywhere), CI green, published to npm.
+
+**One minor consistency note for Cursor (CLI is your file — flagging, not
+fixing):** `renderTextCard`'s primary-source share uses `Math.round(share
+* 100)` over a `totalSourceTokens` that sums OpenRouter's 30-day tokens
+with all-time sources — the same mixed-window + round-to-zero class we
+just fixed on the web card (`fmtShare` + OpenRouter exclusion). Impact is
+low (only the primary %, and OpenRouter is rarely primary), but for
+parity the CLI could reuse the exclusion + non-zero-rounding. Not a
+blocker.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
