@@ -8,6 +8,7 @@ import { eraPalette, eraRank, linkedInShareLine, shareLine } from "@/lib/eraRank
 import { StatsCard, sourceLabels } from "@/components/StatsCard";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { CopyTextButton } from "@/components/CopyTextButton";
+import { MakeOwnButton } from "@/components/MakeOwnButton";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,8 @@ export default async function CardPage({ params }: Props) {
     >
       <StatsCard payload={rec.payload} slug={slug} host={host} />
 
+      <MakeOwnButton accent={palette.accent} bg={palette.bg} />
+
       <p
         style={{
           color: palette.muted,
@@ -110,17 +113,6 @@ export default async function CardPage({ params }: Props) {
           }}
         >
           Share on X
-        </a>
-        <a
-          href="/"
-          style={{
-            color: palette.muted,
-            padding: "10px 18px",
-            fontSize: 14,
-            textDecoration: "none",
-          }}
-        >
-          Make your own →
         </a>
       </div>
 

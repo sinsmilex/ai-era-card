@@ -6,13 +6,17 @@ export interface SnapshotRecord {
   payload: SnapshotPayload;
 }
 
-// One row per render of a card surface. Deliberately PII-free: referer is
-// host-only (no path/query), user agent is reduced to a bot class, no IP.
+// One row per event. Deliberately PII-free: referer is host-only (no
+// path/query), user agent is reduced to a bot class, no IP is stored.
+// Server renders carry a slug (CardSurface); client interactions may not
+// (ClientEventKind) — slug is nullable.
 export type CardSurface = "page" | "og" | "badge" | "story";
+export type ClientEventKind = "card_cta" | "command_copy" | "preview_click";
+export type EventKind = CardSurface | ClientEventKind;
 
 export interface CardEvent {
-  slug: string;
-  surface: CardSurface;
+  slug: string | null;
+  surface: EventKind;
   refererHost: string | null;
   uaClass: string | null;
 }

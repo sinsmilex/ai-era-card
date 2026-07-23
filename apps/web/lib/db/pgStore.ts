@@ -30,12 +30,14 @@ export class PgStore implements SnapshotStore {
       CREATE INDEX IF NOT EXISTS snapshots_total_tokens_idx ON snapshots (total_tokens DESC);
       CREATE TABLE IF NOT EXISTS card_events (
         id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-        slug text NOT NULL,
+        slug text,
         surface text NOT NULL,
         referer_host text,
         ua_class text,
         created_at timestamptz NOT NULL DEFAULT now()
       );
+      -- client interactions (homepage) carry no slug; drop the old NOT NULL.
+      ALTER TABLE card_events ALTER COLUMN slug DROP NOT NULL;
       CREATE INDEX IF NOT EXISTS card_events_created_idx ON card_events (created_at DESC);
     `);
     return new PgStore(pool);

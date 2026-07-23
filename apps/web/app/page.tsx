@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { cardTheme as t } from "@/components/cardTheme";
+import { HomeCommand } from "@/components/HomeCommand";
+import { ExamplePreview } from "@/components/ExamplePreview";
+import { appUrl } from "@/lib/format";
 
-const EXAMPLE = "https://ai-era-card.vercel.app/s/mmi5GrqvJt";
+const EXAMPLE_SLUG = "mmi5GrqvJt";
+const EXAMPLE = `${appUrl()}/s/${EXAMPLE_SLUG}`;
 
 export default function Home() {
   return (
@@ -84,36 +88,30 @@ export default function Home() {
             flexWrap: "wrap",
             gap: 14,
             alignItems: "center",
-            marginBottom: 28,
+            marginBottom: 12,
           }}
         >
-          <code
-            style={{
-              fontFamily: t.mono,
-              fontSize: 16,
-              color: t.text,
-              background: t.panel,
-              border: `1px solid ${t.chipBg}`,
-              borderRadius: t.panelRadius,
-              padding: "14px 18px",
-            }}
-          >
-            npx aieracard
-          </code>
-          <a
-            href={EXAMPLE}
-            style={{
-              fontFamily: t.mono,
-              fontSize: 14,
-              color: t.link,
-              textDecoration: "none",
-            }}
-          >
-            See an example →
-          </a>
+          <HomeCommand />
         </div>
 
-        <p style={{ fontSize: 14, color: t.muted, margin: "0 0 48px" }}>
+        <p
+          style={{
+            fontSize: 13,
+            color: t.muted,
+            margin: "0 0 28px",
+            fontFamily: t.mono,
+          }}
+        >
+          Requires Node 18.17+ and a supported local AI tool.
+        </p>
+
+        <ExamplePreview
+          href={EXAMPLE}
+          imageSrc={`${EXAMPLE}/opengraph-image`}
+          slug={EXAMPLE_SLUG}
+        />
+
+        <p style={{ fontSize: 14, color: t.muted, margin: "20px 0 48px" }}>
           Reads Claude Code, Codex, and Cursor usage on your machine. Optional
           OpenRouter key. Shows the exact JSON before upload.{" "}
           <Link href="/privacy" style={{ color: t.link }}>
