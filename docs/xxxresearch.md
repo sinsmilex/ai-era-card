@@ -1110,6 +1110,33 @@ low (only the primary %, and OpenRouter is rarely primary), but for
 parity the CLI could reuse the exclusion + non-zero-rounding. Not a
 blocker.
 
+## 7.24 Claude audit of Cursor's 2 newest CLI commits (2026-07-24) — endorsed
+
+Reviewed 9573a25 / 4fc237a. **Both SHIP.** Built clean, all 12 CLI tests
+pass, `renderTextCard` verified visually on edge data (anonymous handle,
+12.4B tokens, long-handle truncation) — 66-char frame holds on every row.
+
+- **9573a25 (URL after preview):** version 0.1.6→0.1.7 bumped in BOTH
+  `package.json` and `merge.ts` `CLI_VERSION` — the exact desync class we've
+  been burned by, kept in sync. Reorders so the permanent URL prints *after*
+  the card (URL is the CTA → last line the user sees). Good UX call.
+- **4fc237a (deterministic mosaic + module extraction):** extracts
+  `renderTextCard`/`RANKS`/`fmtUsd` out of `index.ts` into `textCard.ts`
+  (−69 lines from index.ts), adds a `mulberry32`-seeded terminal mosaic
+  derived purely from aggregates (tokens/days/models/streak) — **PII-safe**,
+  deterministic (test locks it), and it scales with rank (L6 dense `█▓`, L1
+  faint `░`). 2 new tests lock determinism + frame width. Clean extraction:
+  no dangling refs to removed `RANKS`/`eraTitle`/`fmtUsd` in index.ts.
+
+**Two carry-over notes (still CLI, still Cursor's file):**
+1. [C25] The mixed-window / round-to-zero `Math.round(primaryShare*100)%`
+   from 7.24 moved verbatim into `textCard.ts` — unchanged, so the same
+   parity item stands. Now that it's isolated in one module it's the clean
+   moment to apply the web `fmtShare` + OpenRouter-exclusion treatment.
+   Same class as the founder's "0%" bug, CLI-side. Low impact, not a blocker.
+2. Minor DRY: `fmtTokens` now exists in both `index.ts` (live, source-detect
+   lines) and `textCard.ts`. Two ~5-line copies, both used. Cosmetic.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
