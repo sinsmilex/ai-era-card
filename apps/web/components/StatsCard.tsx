@@ -11,10 +11,18 @@ import {
 } from "@/lib/sourceStats";
 import {
   fmtMonthYear,
+  fmtShare,
   fmtTokens,
   fmtUsd,
   warAndPeaceEquivalent,
 } from "@/lib/format";
+
+const SOURCE_COLORS: Record<SourceKey, string> = {
+  claudeCode: "#5DCAA5",
+  codex: "#F0A65A",
+  cursor: "#63A4FF",
+  openrouter: "#C69CFF",
+};
 
 export function StatsCard({
   payload,
@@ -68,11 +76,8 @@ export function StatsCard({
         { value: String(a.distinctModels.length), label: "models" },
       ];
 
-  // Per-source colors for chips + breakdown bar (stable by source order).
-  const sourceColor = (key: SourceKey) => {
-    const i = views.findIndex((v) => v.key === key);
-    return palette.mosaicActive[i % palette.mosaicActive.length];
-  };
+  // Fixed source colors keep the breakdown legible across every rank palette.
+  const sourceColor = (key: SourceKey) => SOURCE_COLORS[key];
 
   return (
     <div
@@ -268,10 +273,12 @@ export function StatsCard({
             aria-hidden
             style={{
               display: "flex",
-              height: 5,
+              height: 8,
+              gap: 1,
+              padding: 1,
               borderRadius: 99,
               overflow: "hidden",
-              background: palette.accentSoft,
+              background: palette.panel,
               marginBottom: 10,
             }}
           >
@@ -279,7 +286,7 @@ export function StatsCard({
               <div
                 key={s.key}
                 style={{
-                  width: `${Math.max(s.share * 100, s.tokens > 0 ? 2 : 0)}%`,
+                  flex: s.share > 0 ? `${s.share} 1 0` : "0 0 0",
                   background: sourceColor(s.key),
                   opacity: selected && selected !== s.key ? 0.25 : 1,
                 }}
@@ -313,6 +320,9 @@ export function StatsCard({
                   style={{
                     fontSize: 11,
                     fontFamily: "inherit",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
                     color: isActive ? palette.bg : palette.ink,
                     background: isActive ? sourceColor(v.key) : palette.panel,
                     border: `1px solid ${
@@ -324,13 +334,23 @@ export function StatsCard({
                     opacity: selected && !isActive ? 0.55 : 1,
                   }}
                 >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 6,
+                      height: 6,
+                      flex: "0 0 auto",
+                      borderRadius: 99,
+                      background: isActive ? palette.bg : sourceColor(v.key),
+                    }}
+                  />
                   {v.label}
                   {v.key === "openrouter"
                     ? ` · ${
                         v.tokens != null ? fmtTokens(v.tokens) : "—"
                       } · 30d`
                     : share && share.tokens > 0
-                      ? ` · ${Math.round(share.share * 100)}%`
+                      ? ` · ${fmtShare(share.share)}`
                       : ""}
                 </button>
               );

@@ -9,6 +9,18 @@ export function fmtUsd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
+// A source's token share as a percent that never reads "0%" for a real,
+// non-zero source — a tiny slice (e.g. a little Claude Code next to heavy
+// Cursor use) shows a decimal instead of rounding away to zero.
+export function fmtShare(share: number): string {
+  const pct = share * 100;
+  if (pct <= 0) return "0%";
+  if (pct >= 10) return `${Math.round(pct)}%`; // 77%
+  if (pct >= 1) return `${pct.toFixed(1)}%`; // 2.4%
+  if (pct >= 0.1) return `${pct.toFixed(1)}%`; // 0.4%
+  return "<0.1%"; // 0.03% → "<0.1%", never "0%"
+}
+
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
