@@ -1,21 +1,20 @@
+"use client";
+
+import { useState } from "react";
 import type { SnapshotPayload } from "@aieracard/schema";
 import { buildingBounds, buildBuilding } from "@/lib/mosaic";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
+import {
+  presentSources,
+  tokenShares,
+  type SourceKey,
+} from "@/lib/sourceStats";
 import {
   fmtMonthYear,
   fmtTokens,
   fmtUsd,
   warAndPeaceEquivalent,
 } from "@/lib/format";
-
-export function sourceLabels(p: SnapshotPayload): string[] {
-  const labels: string[] = [];
-  if (p.sources.claudeCode) labels.push("Claude Code");
-  if (p.sources.codex) labels.push("Codex");
-  if (p.sources.cursor) labels.push("Cursor");
-  if (p.sources.openrouter) labels.push("OpenRouter");
-  return labels;
-}
 
 export function StatsCard({
   payload,
@@ -32,16 +31,48 @@ export function StatsCard({
   const milestones = eraMilestones(payload);
   const building = buildBuilding(payload);
   const buildingBoundary = buildingBounds(building);
-  const sources = sourceLabels(payload);
 
-  const metrics: Array<{ value: string; label: string }> = [
-    a.totalCostUsd != null
-      ? { value: fmtUsd(a.totalCostUsd), label: "compute" }
-      : { value: fmtTokens(a.totalTokens), label: "tokens" },
-    { value: String(a.totalActiveDays), label: "active days" },
-    { value: String(a.longestStreakDays), label: "streak" },
-    { value: String(a.distinctModels.length), label: "models" },
-  ];
+  // Interactive source filter: click a source chip to view that source
+  // alone; click again (or "All") to return to the aggregate.
+  const [selected, setSelected] = useState<SourceKey | null>(null);
+  const views = presentSources(payload);
+  const shares = tokenShares(payload);
+  const view = selected ? views.find((v) => v.key === selected) ?? null : null;
+
+  const shownTokens = view ? view.tokens : a.totalTokens;
+  const shownFirstDate = view ? view.firstDate : a.firstActivityDate;
+
+  const metrics: Array<{ value: string; label: string }> = view
+    ? [
+        view.costUsd != null
+          ? { value: fmtUsd(view.costUsd), label: "compute" }
+          : {
+              value: view.tokens != null ? fmtTokens(view.tokens) : "—",
+              label: "tokens",
+            },
+        { value: String(view.activeDays), label: "active days" },
+        view.streak != null
+          ? { value: String(view.streak), label: "streak" }
+          : {
+              value: view.requests != null ? String(view.requests) : "—",
+              label: "requests",
+            },
+        { value: String(view.models.length), label: "models" },
+      ]
+    : [
+        a.totalCostUsd != null
+          ? { value: fmtUsd(a.totalCostUsd), label: "compute" }
+          : { value: fmtTokens(a.totalTokens), label: "tokens" },
+        { value: String(a.totalActiveDays), label: "active days" },
+        { value: String(a.longestStreakDays), label: "streak" },
+        { value: String(a.distinctModels.length), label: "models" },
+      ];
+
+  // Per-source colors for chips + breakdown bar (stable by source order).
+  const sourceColor = (key: SourceKey) => {
+    const i = views.findIndex((v) => v.key === key);
+    return palette.mosaicActive[i % palette.mosaicActive.length];
+  };
 
   return (
     <div
@@ -120,13 +151,13 @@ export function StatsCard({
               fontSize: 11,
               letterSpacing: 1.5,
               color: palette.bg,
-              background: palette.accent,
+              background: view ? sourceColor(view.key) : palette.accent,
               borderRadius: 999,
               padding: "5px 12px",
               fontWeight: 600,
             }}
           >
-            {rank.title}
+            {view ? `${view.label} only` : rank.title}
           </span>
         </div>
 
@@ -139,7 +170,7 @@ export function StatsCard({
             color: palette.ink,
           }}
         >
-          {fmtTokens(a.totalTokens)}
+          {shownTokens != null ? fmtTokens(shownTokens) : "—"}
         </div>
         <div
           style={{
@@ -148,7 +179,9 @@ export function StatsCard({
             marginTop: 10,
           }}
         >
-          tokens · since {fmtMonthYear(a.firstActivityDate)}
+          tokens
+          {view ? ` · ${view.label}` : ""}
+          {shownFirstDate ? ` · since ${fmtMonthYear(shownFirstDate)}` : ""}
         </div>
         <div
           style={{
@@ -156,10 +189,14 @@ export function StatsCard({
             color: palette.accent,
             marginTop: 6,
             marginBottom: 28,
+            minHeight: 18,
           }}
         >
-          ≈ {warAndPeaceEquivalent(a.totalTokens).toLocaleString("en-US")}{" "}
-          copies of War and Peace
+          {shownTokens != null && shownTokens > 0
+            ? `≈ ${warAndPeaceEquivalent(shownTokens).toLocaleString("en-US")} copies of War and Peace`
+            : view
+              ? "Token count not reported by this source."
+              : ""}
         </div>
 
         <div
@@ -197,7 +234,7 @@ export function StatsCard({
           ))}
         </div>
 
-        {milestones.length > 0 && (
+        {!view && milestones.length > 0 && (
           <div
             style={{
               display: "flex",
@@ -224,6 +261,33 @@ export function StatsCard({
           </div>
         )}
 
+        {/* In-card source breakdown: stacked token-share bar + interactive
+            chips. Clicking a chip filters the whole card to that source. */}
+        {views.length > 1 && (
+          <div
+            aria-hidden
+            style={{
+              display: "flex",
+              height: 5,
+              borderRadius: 99,
+              overflow: "hidden",
+              background: palette.accentSoft,
+              marginBottom: 10,
+            }}
+          >
+            {shares.map((s) => (
+              <div
+                key={s.key}
+                style={{
+                  width: `${Math.max(s.share * 100, s.tokens > 0 ? 2 : 0)}%`,
+                  background: sourceColor(s.key),
+                  opacity: selected && selected !== s.key ? 0.25 : 1,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         <div
           style={{
             display: "flex",
@@ -234,28 +298,64 @@ export function StatsCard({
           }}
         >
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {sources.map((label) => (
-              <span
-                key={label}
+            {views.map((v) => {
+              const isActive = selected === v.key;
+              const share = shares.find((s) => s.key === v.key);
+              const canFilter = views.length > 1;
+              return (
+                <button
+                  key={v.key}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() =>
+                    canFilter && setSelected(isActive ? null : v.key)
+                  }
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "inherit",
+                    color: isActive ? palette.bg : palette.ink,
+                    background: isActive ? sourceColor(v.key) : palette.panel,
+                    border: `1px solid ${
+                      isActive ? sourceColor(v.key) : palette.accentSoft
+                    }`,
+                    borderRadius: 999,
+                    padding: "4px 10px",
+                    cursor: canFilter ? "pointer" : "default",
+                    opacity: selected && !isActive ? 0.55 : 1,
+                  }}
+                >
+                  {v.label}
+                  {share && share.tokens > 0
+                    ? ` · ${Math.round(share.share * 100)}%`
+                    : ""}
+                </button>
+              );
+            })}
+            {selected && (
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
                 style={{
                   fontSize: 11,
-                  color: palette.ink,
-                  background: palette.panel,
-                  border: `1px solid ${palette.accentSoft}`,
+                  fontFamily: "inherit",
+                  color: palette.muted,
+                  background: "transparent",
+                  border: `1px dashed ${palette.accentSoft}`,
                   borderRadius: 999,
                   padding: "4px 10px",
+                  cursor: "pointer",
                 }}
               >
-                {label}
-              </span>
-            ))}
+                ← all sources
+              </button>
+            )}
           </div>
           <span style={{ fontSize: 12, color: palette.muted }}>
             {host}/s/{slug}
           </span>
         </div>
 
-        {rank.nextLabel && (
+        {!view && rank.nextLabel && (
           <div
             style={{
               marginTop: 20,
@@ -305,7 +405,19 @@ export function StatsCard({
           Self-reported · not a game score
         </div>
 
-        {payload.sources.openrouter && (
+        {view?.note && (
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: 11,
+              color: palette.muted,
+              lineHeight: 1.45,
+            }}
+          >
+            {view.note}
+          </div>
+        )}
+        {!view && payload.sources.openrouter && (
           <div
             style={{
               marginTop: 14,
