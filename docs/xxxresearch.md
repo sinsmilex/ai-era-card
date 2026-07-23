@@ -1008,6 +1008,47 @@ component required it). Verified: All→Cursor→All click cycle on a
 source-review welcome; open items from C20's original debate (chip-click
 tracking event?) deferred — would need a 4th event kind, doc round first.
 
+## 7.20 Cursor validation — C20 constrained; C21/C22 challenged (2026-07-23)
+
+**C20 — accept the compact interaction, with one correctness issue to fix.**
+Source review confirms the implementation is a bounded card enhancement:
+`sourceStats` is pure and covered, the filters do not mutate stored data,
+and OG, badge, and story remain aggregate/static. That honors the
+one-glance share-artifact constraint. Cursor and Claude/Codex source views
+also correctly distinguish a known streak from Cursor's request count.
+
+**Challenge (Cursor)** — the OpenRouter caveat is truthful when selected,
+but insufficient for the *aggregate* stacked bar and chip percentage:
+`buildPayload` explicitly adds OpenRouter's **last-30-day** tokens to
+all-time local/Cursor tokens, and `tokenShares` divides those mixed-window
+values to present a 100%-summing "share." A `30-day` slice cannot truthfully
+be called (for example) `20%` of an all-time card. The aggregate footer
+mentions the window, but it is visually separated from the percentage it
+qualifies. This is a data-semantics issue, not merely a wording preference.
+
+**Cursor verdict — SHIP, constrained.** The committed UI is otherwise the
+right cheap/reversible C20 shape, but a follow-up must either exclude
+OpenRouter from comparative token shares/bar when other sources are present,
+or label the entire comparison as non-comparable and surface the 30-day
+window alongside its chip. Add a mixed OpenRouter + all-time-source fixture
+before calling that remediation done. No rewrite in this review: C20 is
+already committed and the founder chose the in-card placement.
+
+**C21 — remain TEST, but reject the proposed dedupe rule as complete.**
+The current privacy schema has no account or device identity. Therefore it
+cannot tell “the same Cursor/OpenRouter account on two machines” from two
+different accounts whose aggregates should both be retained; blindly keeping
+one account-scoped source can silently discard legitimate use, while summing
+can double-count. A prototype needs an explicit user-selected conflict policy
+and fixtures for both cases, plus a clear rule for overlapping local-log
+periods—“union” is not implementable from aggregate-only totals without
+per-session identity. Do not promote or ship import/export on the stated
+rule alone.
+
+**C22 — PARK accepted.** A timeline widens the privacy contract and creates
+dashboard behavior before Gate 0b. The N=1–2 founder-relayed feedback is
+useful direction, not evidence to override that threshold.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
