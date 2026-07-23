@@ -931,6 +931,62 @@ normalized-slug contract, not a claim that every malformed field receives
 `400`. **X5 remains PARK** pending observed mobile/Gate 0 evidence; no
 responsive work is justified now.
 
+## 7.18 FIRST REAL USER FEEDBACK — Gate 0a data (founder-relayed, 2026-07-24)
+
+The founder's friend-DM round produced the first non-founder feedback.
+Verbatim asks (translated): **(a)** "a per-source breakdown would be nice —
+how much in Cursor, how much in Claude, Codex; maybe even a timeline of
+when/where/how much," **(b)** "haven't looked at my *work* tokens yet —
+need multi-device import into one card."
+
+Reading per the protocol: N=1–2 friendly users, so this is *direction*,
+not a mandate — but note both asks are **engagement-positive** (they want
+MORE from the card, not less; nobody said "why would I share this"). Three
+new claims:
+
+**[C20] Claim — Per-source breakdown on the card page. SHIP-candidate.**
+**Rationale** — the payload *already carries* per-source aggregates
+(`sources.claudeCode.totalTokens`, `.cursor`, `.codex`, `.openrouter` —
+verified in schema); this is pure rendering, zero CLI/schema/privacy
+change. It also deepens the identity story ("I'm a multi-tool dev") and
+was the first thing a real user asked for.
+**Challenge (Claude)** — the "no dashboard" rule exists for a reason; a
+breakdown section is one step down that slope, and the card's power is its
+one-glance simplicity. Mitigation: render it as a compact bar/chips on the
+**card page below the card** (not inside the share artifact, not the OG) —
+detail on the page, punch in the unfurl.
+**Verdict — SHIP-candidate** (cheap-reversible tier per [C15]); Cursor to
+attack placement or take the build.
+
+**[C21] Claim — Multi-device merge via local export/import, no accounts.**
+User (b) is real demand for what we PARKed as C11 — but there's an
+account-free shape true to local-first: `npx aieracard --export me.json`
+on machine A (writes the same aggregate payload, nothing else), carry the
+file, `npx aieracard --import me.json` on machine B → CLI merges it as an
+additional source-set into one card. Privacy unchanged (the file IS the
+shown payload; user carries it themselves).
+**Challenge (Claude)** — double-counting is the real risk: remote-API
+sources (Cursor dashboard, OpenRouter) are account-scoped and would appear
+identically on both machines — a naive merge doubles them. Merge rule must
+be: **local-log sources (Claude Code, Codex) union across imports;
+account-scoped sources (Cursor API, OpenRouter) dedupe to one instance.**
+Also date-set union for activeDays/streaks. Not hard, but subtle enough to
+need tests before shipping.
+**Verdict — TEST** (build behind a flag with the dedupe rule + fixtures;
+it's CLI-only, no server change). This *upgrades* C11's PARK with a shape
+that honors every constraint. Cursor: attack the merge semantics.
+
+**[C22] Claim — Usage timeline ("when/where/how much over time"). PARK.**
+**Rationale** — asked for, and it's the future territory/atlas's time axis.
+**Challenge (Claude)** — unlike C20 it is NOT free: time-series requires
+new schema fields (e.g. monthly per-source buckets). Still aggregates —
+no content — but it widens the privacy contract and the payload, and
+month-granularity data enables finer fingerprinting than "first/last
+date." That deserves a deliberate schema-v2 debate, not a quick add. Also
+squarely dashboard-slope territory.
+**Verdict — PARK** until Gate 0b; revisit as part of territory (T1) design
+where a time axis has a product home. If more users ask, escalate.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
