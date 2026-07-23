@@ -42,11 +42,79 @@ const { values: args } = parseArgs({
   },
 });
 
-function fmt(n: number): string {
+function fmtTokens(n: number): string {
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
+}
+
+function fmtUsd(n: number): string {
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+
+const RANKS = [
+  { level: 1, name: "Foundation", minTokens: 0 },
+  { level: 2, name: "Studio", minTokens: 25_000_000 },
+  { level: 3, name: "Foundry", minTokens: 150_000_000 },
+  { level: 4, name: "Tower", minTokens: 750_000_000 },
+  { level: 5, name: "Citadel", minTokens: 2_500_000_000 },
+  { level: 6, name: "Arcology", minTokens: 7_500_000_000 },
+  { level: 7, name: "Landmark", minTokens: 20_000_000_000 },
+  { level: 8, name: "Apex", minTokens: 100_000_000_000 },
+] as const;
+
+function eraTitle(totalTokens: number): string {
+  const rank = RANKS.findLast((candidate) => totalTokens >= candidate.minTokens)!;
+  return `L${rank.level} · ${rank.name.toUpperCase()}`;
+}
+
+function renderTextCard(payload: SnapshotPayload): string {
+  const { aggregate, display, sources } = payload;
+  const sourceNames = {
+    claudeCode: "Claude Code",
+    codex: "Codex",
+    cursor: "Cursor",
+    openrouter: "OpenRouter",
+  };
+  const sourceEntries = Object.entries(sources).map(([source, stats]) => ({
+    name: sourceNames[source as keyof typeof sourceNames],
+    tokens: stats.totalTokens ?? 0,
+  }));
+  const totalSourceTokens = sourceEntries.reduce((sum, source) => sum + source.tokens, 0);
+  const primarySource = [...sourceEntries].sort((a, b) => b.tokens - a.tokens)[0];
+  const primaryShare =
+    totalSourceTokens > 0 && primarySource
+      ? primarySource.tokens / totalSourceTokens
+      : 0;
+  const barWidth = 20;
+  const filled = Math.round(primaryShare * barWidth);
+  const sourceBar = `${"█".repeat(filled)}${"░".repeat(barWidth - filled)}`;
+  const rank = RANKS.findLast(
+    (candidate) => aggregate.totalTokens >= candidate.minTokens
+  )!;
+  const mosaic = `${"▓".repeat(rank.level)}${"▒".repeat(8 - rank.level)}`;
+  const innerWidth = 62;
+  const line = (text: string) => `│ ${text.slice(0, innerWidth).padEnd(innerWidth)} │`;
+  const compute =
+    aggregate.totalCostUsd != null
+      ? `${fmtUsd(aggregate.totalCostUsd)} compute`
+      : "compute not reported";
+
+  return [
+    `┌${"─".repeat(innerWidth + 2)}┐`,
+    line(`AI ERA CARD · ${display.handle || "anonymous"}`),
+    line(`${eraTitle(aggregate.totalTokens)} · ${mosaic}`),
+    line(`${fmtTokens(aggregate.totalTokens)} tokens`),
+    line(`${compute} · ${aggregate.distinctModels.length} models`),
+    line(`${aggregate.totalActiveDays} active days · ${aggregate.longestStreakDays}-day streak`),
+    line(`Sources: ${sourceEntries.map((source) => source.name).join(" · ")}`),
+    line(
+      `Usage: ${sourceBar}${primarySource ? ` ${primarySource.name} ${Math.round(primaryShare * 100)}%` : ""}`
+    ),
+    line("Self-reported · not a game score"),
+    `└${"─".repeat(innerWidth + 2)}┘`,
+  ].join("\n");
 }
 
 function bail(message: string): never {
@@ -96,7 +164,7 @@ Options:
     claudeCode = await collectClaudeCode();
     if (claudeCode) {
       s.stop(
-        `Claude Code: ${fmt(claudeCode.source.totalTokens)} tokens across ` +
+        `Claude Code: ${fmtTokens(claudeCode.source.totalTokens)} tokens across ` +
           `${claudeCode.source.sessionCount} sessions (${claudeCode.filesParsed} log files)`
       );
     } else {
@@ -112,7 +180,7 @@ Options:
     codex = await collectCodex();
     if (codex) {
       s.stop(
-        `Codex: ${fmt(codex.source.totalTokens)} tokens across ` +
+        `Codex: ${fmtTokens(codex.source.totalTokens)} tokens across ` +
           `${codex.source.sessionCount} sessions (${codex.filesParsed} log files)`
       );
     } else {
@@ -149,7 +217,7 @@ Options:
                 ? `$${openrouter.source.totalCostUsd} all-time spend (not rolled into card total)`
                 : "spend unknown";
             s.stop(
-              `OpenRouter: ${fmt(openrouter.source.totalTokens)} tokens (last 30 days), ${spend}`
+              `OpenRouter: ${fmtTokens(openrouter.source.totalTokens)} tokens (last 30 days), ${spend}`
             );
           } else {
             s.stop("OpenRouter: no usage found — skipping");
@@ -186,7 +254,7 @@ Options:
             p.log.warn(`Cursor: ${warning}`);
           }
           s.stop(
-            `Cursor: ${fmt(result.source.totalTokens ?? 0)} tokens, ` +
+            `Cursor: ${fmtTokens(result.source.totalTokens ?? 0)} tokens, ` +
               `${result.source.requestCount} events since ${result.source.dateRange.from}` +
               (result.email ? ` (${result.email})` : "")
           );
@@ -201,7 +269,7 @@ Options:
         );
         if (!interactive) {
           bail(
-            "Cursor was not included. Re-run without --yes to provide a CSV, " +
+            "Cursor was not included. Re-run interactively (without --yes or --force) to provide a CSV, " +
               "pass --cursor-csv <path>, or explicitly opt out with --no-cursor."
           );
         }
@@ -276,6 +344,7 @@ Options:
   }
 
   if (args["dry-run"]) {
+    console.log(renderTextCard(payload));
     p.outro("Dry run — nothing was uploaded.");
     return;
   }
@@ -313,6 +382,7 @@ Options:
   const { url } = (await res.json()) as { slug: string; url: string };
   s.stop("Card created");
   p.log.success(`Your permanent card URL:\n  ${url}`);
+  console.log(renderTextCard(payload));
 
   if (args.open) {
     const { exec } = await import("node:child_process");

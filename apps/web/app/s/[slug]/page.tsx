@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
-import { appUrl, fmtTokens, fmtUsd } from "@/lib/format";
+import { appUrl, fmtTokens } from "@/lib/format";
 import { eraPalette, eraRank, linkedInShareLine, shareLine } from "@/lib/eraRank";
 import { StatsCard } from "@/components/StatsCard";
 import { sourceLabels } from "@/lib/sourceStats";
@@ -43,10 +43,6 @@ export default async function CardPage({ params }: Props) {
 
   const url = `${appUrl()}/s/${slug}`;
   const palette = eraPalette(rec.payload);
-  const aggregate = rec.payload.aggregate;
-  const rank = eraRank(rec.payload);
-  const sources = sourceLabels(rec.payload);
-  const mosaic = `${"█".repeat(rank.level)}${"░".repeat(8 - rank.level)}`;
   const tweet = shareLine(rec.payload, url);
   const linkedInPost = linkedInShareLine(rec.payload, url);
   const badgeMarkdown = `[![My AI era](${url}/card.svg)](${url})`;
@@ -119,110 +115,6 @@ export default async function CardPage({ params }: Props) {
           Share on X
         </a>
       </div>
-
-      <section
-        aria-label="Shareable card snapshot"
-        style={{
-          width: "100%",
-          maxWidth: 680,
-          color: palette.ink,
-          fontSize: "clamp(11px, 2.8vw, 13px)",
-          lineHeight: 1.45,
-        }}
-      >
-        <div
-          aria-hidden
-          style={{
-            color: palette.accentSoft,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}
-        >
-          ┌─ AI ERA CARD ───────────────────────────────────────────────┐
-        </div>
-        <div
-          style={{
-            background: palette.panel,
-            borderLeft: `1px solid ${palette.accentSoft}`,
-            borderRight: `1px solid ${palette.accentSoft}`,
-            padding: "12px 14px",
-            display: "grid",
-            gap: 10,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <span>
-              AI ERA CARD · {rec.payload.display.handle || "anonymous"}
-            </span>
-            <span style={{ color: palette.accent }}>{rank.title}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <span style={{ color: palette.ink, fontSize: "1.35em", fontWeight: 600 }}>
-              {fmtTokens(aggregate.totalTokens)} tokens
-            </span>
-            <span style={{ color: palette.muted }}>mosaic {mosaic}</span>
-          </div>
-          <div style={{ color: palette.muted }}>
-            {aggregate.totalCostUsd != null
-              ? `${fmtUsd(aggregate.totalCostUsd)} compute`
-              : "compute not reported"}
-            {" · "}
-            {aggregate.totalActiveDays} days · {aggregate.longestStreakDays} streak
-            {" · "}
-            {aggregate.distinctModels.length} models
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 6,
-              color: palette.muted,
-            }}
-          >
-            {sources.map((source) => (
-              <span
-                key={source}
-                style={{
-                  border: `1px solid ${palette.accentSoft}`,
-                  borderRadius: 4,
-                  padding: "2px 6px",
-                }}
-              >
-                〔{source}〕
-              </span>
-            ))}
-          </div>
-          <div style={{ color: palette.muted }}>
-            Self-reported aggregate · not a game score
-          </div>
-        </div>
-        <div
-          aria-hidden
-          style={{
-            color: palette.accentSoft,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}
-        >
-          └─ share the snapshot, not the prompts ────────────────────────┘
-        </div>
-      </section>
 
       <section
         aria-label="Share on LinkedIn"
