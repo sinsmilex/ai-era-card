@@ -89,7 +89,7 @@ export async function GET(
   <text x="28" y="88" font-family="${MONO}" font-size="42" font-weight="600" fill="${palette.ink}">${fmtTokens(a.totalTokens)}</text>
   <text x="28" y="112" font-family="${SANS}" font-size="13" fill="${palette.muted}">tokens processed · since ${esc(fmtMonthYear(a.firstActivityDate))}</text>
   ${metrics}
-  <text x="${W - 26}" y="${H - 10}" text-anchor="end" font-family="${MONO}" font-size="11" fill="${palette.accent}">${esc(host)}/s/${esc(slug)}</text>
+  <text x="${W - 26}" y="${H - 10}" text-anchor="end" font-family="${MONO}" font-size="11" fill="${palette.accent}">${esc(host)}</text>
 </svg>`;
 
   return new NextResponse(svg, {

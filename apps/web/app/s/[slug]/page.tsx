@@ -41,7 +41,6 @@ export default async function CardPage({ params }: Props) {
   if (!rec) notFound();
   await track(slug, "page", await headers());
 
-  const host = appUrl().replace(/^https?:\/\//, "");
   const url = `${appUrl()}/s/${slug}`;
   const palette = eraPalette(rec.payload);
   const tweet = shareLine(rec.payload, url);
@@ -64,7 +63,7 @@ export default async function CardPage({ params }: Props) {
           "var(--font-card-mono), ui-monospace, 'Cascadia Code', Consolas, monospace",
       }}
     >
-      <StatsCard payload={rec.payload} slug={slug} host={host} />
+      <StatsCard payload={rec.payload} />
 
       <MakeOwnButton accent={palette.accent} bg={palette.bg} />
 

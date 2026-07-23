@@ -231,7 +231,7 @@ export default async function OgImage({
             Self-reported · not a game score
           </div>
           <div style={{ display: "flex", color: palette.accent }}>
-            {host}/s/{slug}
+            {host}
           </div>
         </div>
       </div>

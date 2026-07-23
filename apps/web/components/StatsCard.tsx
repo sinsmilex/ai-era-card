@@ -26,12 +26,8 @@ const SOURCE_COLORS: Record<SourceKey, string> = {
 
 export function StatsCard({
   payload,
-  slug,
-  host,
 }: {
   payload: SnapshotPayload;
-  slug: string;
-  host: string;
 }) {
   const a = payload.aggregate;
   const palette = eraPalette(payload);
@@ -49,6 +45,13 @@ export function StatsCard({
 
   const shownTokens = view ? view.tokens : a.totalTokens;
   const shownFirstDate = view ? view.firstDate : a.firstActivityDate;
+  const footerContext = view
+    ? "Filtered view · not the share snapshot"
+    : a.firstActivityDate === a.lastActivityDate
+      ? `Activity · ${fmtMonthYear(a.firstActivityDate)}`
+      : `Activity · ${fmtMonthYear(a.firstActivityDate)} → ${fmtMonthYear(
+          a.lastActivityDate
+        )}`;
 
   const metrics: Array<{ value: string; label: string }> = view
     ? [
@@ -374,8 +377,8 @@ export function StatsCard({
               </button>
             )}
           </div>
-          <span style={{ fontSize: 12, color: palette.muted }}>
-            {host}/s/{slug}
+          <span style={{ fontSize: 11, color: palette.muted }}>
+            {footerContext}
           </span>
         </div>
 
