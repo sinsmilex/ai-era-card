@@ -50,7 +50,9 @@ export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const blocks = Array.from({ length: height }, () =>
     Array.from({ length: width }, () => {
       const brightness = random();
-      return brightness < 0.58 ? "░" : brightness < 0.88 ? "▒" : "▓";
+      // ASCII keeps the landmark visible in Windows terminals whose fonts render
+      // Unicode shade glyphs as nearly blank cells.
+      return brightness < 0.58 ? "." : brightness < 0.88 ? "+" : "#";
     })
   );
   const buildingWidth = Math.min(width, 3 + rank.level);
@@ -69,7 +71,7 @@ export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
     for (let floor = 0; floor < columnHeight; floor++) {
       const brightness = random();
       blocks[height - 1 - floor][left + x] =
-        brightness < 0.18 ? "░" : brightness < 0.5 ? "▒" : brightness < 0.82 ? "▓" : "█";
+        brightness < 0.18 ? "." : brightness < 0.5 ? "+" : brightness < 0.82 ? "#" : "@";
     }
   }
 

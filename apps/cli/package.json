@@ -1,6 +1,6 @@
 {
   "name": "aieracard",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Generate a shareable card from your AI tool usage. Local parsing, aggregate numbers only.",
   "type": "module",
   "bin": {

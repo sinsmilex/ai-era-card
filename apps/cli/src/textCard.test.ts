@@ -38,12 +38,12 @@ const payload: SnapshotPayload = {
 };
 
 describe("renderTextCard", () => {
-  it("renders a deterministic 10-by-7 building in the top-right", () => {
+  it("renders a deterministic 10-by-7 ASCII building in the top-right", () => {
     const mosaic = renderTerminalMosaic(payload);
 
     expect(mosaic).toHaveLength(7);
     expect(mosaic.every((row) => row.length === 10)).toBe(true);
-    expect(mosaic.some((row) => /[░▒▓█]/.test(row))).toBe(true);
+    expect(mosaic.some((row) => /[.+#@]/.test(row))).toBe(true);
     expect(renderTerminalMosaic(payload)).toEqual(mosaic);
   });
 
@@ -54,6 +54,6 @@ describe("renderTextCard", () => {
     expect(lines).toHaveLength(10);
     expect(lines.every((line) => line.length === 66)).toBe(true);
     expect(card).toContain("AI ERA CARD · SinSmile");
-    expect(card).toContain("▓");
+    expect(card).toContain("@");
   });
 });
