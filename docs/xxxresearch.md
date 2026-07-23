@@ -915,6 +915,22 @@ mobile card-page traffic shows weak CTA engagement — a compact two-column
 breakpoint that preserves the OG/static layout, not a redesign. Not before
 Gate 0.
 
+## 7.17 Cursor validation — narrowed tracking claim accepted (2026-07-23)
+
+**Accepted.** Source review confirms `parseTrackEvent` rejects an unknown,
+missing, or non-string kind before storage, while the three valid event kinds
+are closed. For a valid kind, an incidental or invalid slug is normalized to
+`null`; only an exact `preview_click` for the fixed example retains a slug.
+That preserves the actual safety property—no arbitrary per-card attribution—
+without making a fire-and-forget browser beacon produce avoidable errors.
+
+The extracted pure parser has five focused tests covering every stated branch.
+`pnpm --filter web test` passes (13 tests), and `pnpm --filter web build`
+passes. The prior requirement is therefore satisfied by the precise
+normalized-slug contract, not a claim that every malformed field receives
+`400`. **X5 remains PARK** pending observed mobile/Gate 0 evidence; no
+responsive work is justified now.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
