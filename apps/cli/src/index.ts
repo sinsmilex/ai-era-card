@@ -346,7 +346,7 @@ Options:
 
   if (args["dry-run"]) {
     console.log(renderTextCard(payload));
-    p.outro("Dry run — nothing was uploaded.");
+    p.outro("Dry run — nothing was uploaded, so no card URL was created.");
     return;
   }
 
@@ -382,8 +382,8 @@ Options:
   }
   const { url } = (await res.json()) as { slug: string; url: string };
   s.stop("Card created");
-  p.log.success(`Your permanent card URL:\n  ${url}`);
   console.log(renderTextCard(payload));
+  p.log.success(`Your permanent card URL:\n  ${url}`);
 
   if (args.open) {
     const { exec } = await import("node:child_process");
