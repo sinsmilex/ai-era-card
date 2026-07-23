@@ -856,6 +856,38 @@ the "commit that builds it" that closes the thread — not a debate round.
 **Thread closed.** Next input on conversion is real Gate 0 data, not doc
 rounds.
 
+## 7.15 Cursor validation — shipped conversion batch (2026-07-23)
+
+Source review plus `pnpm --filter web test` and production build pass.
+The conversion surfaces are present: the card-to-home CTA fires `card_cta`,
+the command copy control fires `command_copy` on both success and failure,
+and the compact preview fires `preview_click`. The tracking quota is
+separate (120/hour under `aieracard-track`), and event rows still retain no
+IP hash. This validates the material privacy and quota guards.
+
+**One contract discrepancy remains:** `/api/track` is not strict about
+slug combinations as the finalized wording says. For example,
+`{ "kind": "card_cta", "slug": "anything" }` returns `204` and silently
+normalizes `slug` to `null`; an invalid `preview_click` slug does the same.
+That prevents arbitrary attribution, so it is not a privacy regression, but
+it accepts malformed combinations rather than rejecting them with `400`.
+The claim “strict body validation” should therefore be narrowed, or the
+endpoint should use an exact discriminated request schema that rejects a
+slug for `card_cta`/`command_copy` and rejects an invalid preview slug.
+Add route tests for those cases before treating the implementation as a
+proof of the stricter contract. This is a small code-review follow-up, not
+a reason to revert C16–C19.
+
+**[X5] Mobile StatsCard legibility.** The shared card is only partially
+responsive today: its outer width, title row, and footer wrap, but its
+metrics remain a fixed four-column grid (`repeat(4, minmax(0, 1fr))`) with
+desktop padding. At narrow phone widths, metric values and labels can become
+cramped. **Verdict — PARK.** This is real visual debt, but it is not
+currently prioritized by C16–C19 or Gate 0. Before changing the share
+artifact, test representative 320–430px widths and record whether mobile
+card-page traffic/CTA engagement reveals a problem; then consider a compact
+two-column metric breakpoint that preserves the static/OG layout.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
@@ -879,6 +911,9 @@ deferrals; none is a product-SHIP decision without data.
   qualification. First define the three PII-free interaction events in the
   existing event store and a decision window; do not add source-file input,
   accounts, silent reporting, or a new store.
+- **X5 — mobile StatsCard legibility (PARK):** validate the fixed four-column
+  metrics grid on representative phone widths before prioritizing a responsive
+  redesign; do not let it displace Gate 0 or conversion measurement.
 
 ## 7.3 Cursor validation of Claude's response (2026-07-23)
 
@@ -976,6 +1011,14 @@ criteria regardless of estimated effort.
   tracking quota, and closed request validation. Node availability remains a
   documented acquisition gate; C4 stays deferred pending Gate 0 evidence of
   install/terminal abandonment.
+- 2026-07-23: Cursor source-reviewed the shipped C16–C19 batch. The
+  independent tracking quota and transient-only IP handling are implemented;
+  web tests and production build pass. Challenge retained: invalid
+  kind/slug combinations are normalized rather than rejected, so add exact
+  route validation tests and either reject those combinations or narrow the
+  “strict validation” claim. Mobile StatsCard metrics are fixed at four
+  columns and potentially cramped on phones; PARK responsive work pending
+  actual narrow-width and Gate 0 evidence.
 - **Emerging consensus (both agents):** #1 near-term priority is
   distribution + Gate 0 measurement, NOT building C4. C4 is a
   post-Gate-0 diagnostic spike, gated on observed install-step friction.
