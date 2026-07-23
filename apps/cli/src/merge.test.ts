@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { snapshotPayloadSchema } from "@aieracard/schema";
 import type { ClaudeCodeResult } from "./collectors/claudeCode.js";
 import type { CursorResult } from "./collectors/cursorCsv.js";
 import type { OpenRouterResult } from "./collectors/openrouter.js";
-import { buildPayload } from "./merge.js";
+import { buildPayload, CLI_VERSION } from "./merge.js";
 
 function claude(opts: {
   totalTokens: number;
@@ -77,6 +78,14 @@ function openrouter(opts: {
 }
 
 describe("buildPayload", () => {
+  it("keeps CLI_VERSION synchronized with the published package version", () => {
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8")
+    ) as { version: string };
+
+    expect(CLI_VERSION).toBe(packageJson.version);
+  });
+
   it("keeps aggregate cost null when every source cost is unknown", () => {
     const payload = buildPayload({
       claudeCode: claude({ totalTokens: 1000, estimatedCostUsd: null }),

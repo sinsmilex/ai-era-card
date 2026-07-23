@@ -94,6 +94,9 @@ export function renderTextCard(payload: SnapshotPayload): string {
   const primarySource = [...sourceEntries].sort((a, b) => b.tokens - a.tokens)[0];
   const primaryShare =
     totalSourceTokens > 0 && primarySource ? primarySource.tokens / totalSourceTokens : 0;
+  // OpenRouter only reports a trailing 30-day window while the other sources
+  // report all-time usage. Do not present their combined token totals as a share.
+  const hasMixedUsageWindows = sources.openrouter != null && sourceEntries.length > 1;
   const barWidth = 20;
   const filled = Math.round(primaryShare * barWidth);
   const sourceBar = `${"█".repeat(filled)}${"░".repeat(barWidth - filled)}`;
@@ -114,7 +117,9 @@ export function renderTextCard(payload: SnapshotPayload): string {
     `${compute} · ${aggregate.distinctModels.length} models`,
     `${aggregate.totalActiveDays} active days · ${aggregate.longestStreakDays}-day streak`,
     `Sources: ${sourceEntries.map((source) => source.name).join(" · ")}`,
-    `Usage: ${sourceBar}${primarySource ? ` ${primarySource.name} ${Math.round(primaryShare * 100)}%` : ""}`,
+    hasMixedUsageWindows
+      ? "Usage: share unavailable (OpenRouter: last 30 days)"
+      : `Usage: ${sourceBar}${primarySource ? ` ${primarySource.name} ${Math.round(primaryShare * 100)}%` : ""}`,
     "Self-reported · not a game score",
   ];
   const line = (text: string, art = "") =>

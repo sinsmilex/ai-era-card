@@ -56,4 +56,24 @@ describe("renderTextCard", () => {
     expect(card).toContain("AI ERA CARD · SinSmile");
     expect(card).toContain("@");
   });
+
+  it("does not compare OpenRouter's 30-day token window to all-time sources", () => {
+    const card = renderTextCard({
+      ...payload,
+      sources: {
+        ...payload.sources,
+        openrouter: {
+          totalTokens: 1,
+          totalCostUsd: 10,
+          requestCount: 1,
+          activeDays: 1,
+          windowDays: 30,
+          models: ["openai/gpt-5"],
+        },
+      },
+    });
+
+    expect(card).toContain("Usage: share unavailable");
+    expect(card).not.toContain("OpenRouter 0%");
+  });
 });
