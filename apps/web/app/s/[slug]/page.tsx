@@ -82,6 +82,15 @@ export default async function CardPage({ params }: Props) {
         <a href="/privacy" style={{ color: palette.accent }}>
           Read the privacy contract.
         </a>
+        {" "}
+        <a
+          href="https://github.com/sinsmilex/ai-era-card"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: palette.accent }}
+        >
+          View the source on GitHub.
+        </a>
       </p>
 
       <div

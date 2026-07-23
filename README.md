@@ -2,6 +2,8 @@
 
 Your AI usage — tokens, streaks, models — on one permanent, shareable card.
 The CLI parses usage logs **locally** and uploads **aggregate numbers only**.
+The parser and privacy schema are open source:
+https://github.com/sinsmilex/ai-era-card
 
 ## Structure
 

@@ -33,6 +33,17 @@ export default function Privacy() {
       <p style={{ color: "#8b949e" }}>
         Cards are self-reported statistics, like any year-in-review.
       </p>
+      <p style={{ color: "#8b949e" }}>
+        The parser and public schema are open source.{" "}
+        <a
+          href="https://github.com/sinsmilex/ai-era-card"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#58a6ff" }}
+        >
+          View the source on GitHub.
+        </a>
+      </p>
     </main>
   );
 }

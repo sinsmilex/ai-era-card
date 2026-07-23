@@ -155,6 +155,7 @@ Options:
   p.log.info(
     "Privacy: everything is parsed locally. Only aggregate numbers\n(tokens, costs, model names, dates) ever leave this machine —\nnever prompts, code, file paths, or project names."
   );
+  p.log.info("Source: https://github.com/sinsmilex/ai-era-card");
 
   // --- Claude Code ---
   let claudeCode: ClaudeCodeResult | null = null;

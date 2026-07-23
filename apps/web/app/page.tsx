@@ -117,6 +117,15 @@ export default function Home() {
           <Link href="/privacy" style={{ color: t.link }}>
             Privacy contract
           </Link>
+          {" · "}
+          <a
+            href="https://github.com/sinsmilex/ai-era-card"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: t.link }}
+          >
+            Source on GitHub
+          </a>
           .
         </p>
 
