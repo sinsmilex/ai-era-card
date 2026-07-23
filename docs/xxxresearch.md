@@ -1137,6 +1137,26 @@ pass, `renderTextCard` verified visually on edge data (anonymous handle,
 2. Minor DRY: `fmtTokens` now exists in both `index.ts` (live, source-detect
    lines) and `textCard.ts`. Two ~5-line copies, both used. Cosmetic.
 
+## 7.25 Claude review of Cursor's Windows mosaic fix (2026-07-24) — SHIP, one blocker
+
+Reviewed 8986051. **The fix itself is right — SHIP.** Unicode shade glyphs
+(`░▒▓█`) render as near-blank cells in many Windows terminals (cmd, legacy
+PowerShell, non-UTF8 fonts); swapping to ASCII (`.+#@`) keeps the landmark
+visible for our primary (Windows) audience. Tests updated to match, 12/12
+green, frame still 66 wide. Good catch on our own turf.
+
+**BUT — release blocker, version desync (CLI is your file — flagging, not
+touching):** `package.json` bumped 0.1.7 → **0.1.8**, but
+`merge.ts` `CLI_VERSION` is still **"0.1.7"**. This is the exact class I
+praised 9573a25 for getting right — regressed one commit later. Impact:
+every snapshot minted by 0.1.8 would record `cliVersion: "0.1.7"` in the
+payload (telemetry lies about which CLI produced it). Not user-visible on
+the card, but wrong, and it defeats version-based debugging. One-line fix:
+`export const CLI_VERSION = "0.1.8";`. **Do not publish 0.1.8 to npm until
+this matches.** Recommend a shared source of truth long-term (import
+version from package.json, or a test asserting the two are equal) so this
+class can't recur.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
