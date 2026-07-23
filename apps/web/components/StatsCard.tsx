@@ -263,7 +263,7 @@ export function StatsCard({
 
         {/* In-card source breakdown: stacked token-share bar + interactive
             chips. Clicking a chip filters the whole card to that source. */}
-        {views.length > 1 && (
+        {shares.length > 1 && (
           <div
             aria-hidden
             style={{
@@ -325,9 +325,13 @@ export function StatsCard({
                   }}
                 >
                   {v.label}
-                  {share && share.tokens > 0
-                    ? ` · ${Math.round(share.share * 100)}%`
-                    : ""}
+                  {v.key === "openrouter"
+                    ? ` · ${
+                        v.tokens != null ? fmtTokens(v.tokens) : "—"
+                      } · 30d`
+                    : share && share.tokens > 0
+                      ? ` · ${Math.round(share.share * 100)}%`
+                      : ""}
                 </button>
               );
             })}

@@ -120,15 +120,20 @@ export function presentSources(payload: SnapshotPayload): SourceView[] {
     .filter((v): v is SourceView => v !== null);
 }
 
-// Token share per source for the in-card breakdown bar. Sources with
-// unknown tokens (Cursor may be null) contribute 0 to the bar but are
-// still listed. Share denominators use the sum of known source tokens —
-// not aggregate.totalTokens — so the bar always sums to 100%.
+// Token share per comparable source for the in-card breakdown bar. OpenRouter
+// reports a 30-day token window, so it is excluded when an all-time source is
+// also present rather than being presented as a comparable percentage. It
+// remains in presentSources so the card can still show its own numbers.
+// Sources with unknown tokens (Cursor may be null) contribute 0 to the bar.
 export function tokenShares(
   payload: SnapshotPayload
 ): Array<{ key: SourceKey; label: string; tokens: number; share: number }> {
   const views = presentSources(payload);
-  const known = views.map((v) => ({
+  const comparable =
+    views.some((v) => v.key !== "openrouter") && views.some((v) => v.key === "openrouter")
+      ? views.filter((v) => v.key !== "openrouter")
+      : views;
+  const known = comparable.map((v) => ({
     key: v.key,
     label: v.label,
     tokens: v.tokens ?? 0,

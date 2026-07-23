@@ -102,4 +102,21 @@ describe("presentSources / tokenShares", () => {
     expect(shares.find((s) => s.key === "cursor")!.share).toBe(0);
     expect(shares.find((s) => s.key === "claudeCode")!.share).toBe(1);
   });
+
+  it("excludes OpenRouter's 30-day window from all-time source shares", () => {
+    const p = structuredClone(base);
+    p.sources.openrouter = {
+      totalTokens: 500,
+      totalCostUsd: 2,
+      requestCount: 10,
+      activeDays: 3,
+      windowDays: 30,
+      models: ["openai/gpt-5"],
+    };
+
+    const shares = tokenShares(p);
+
+    expect(shares.map((s) => s.key)).toEqual(["claudeCode", "cursor"]);
+    expect(shares.map((s) => s.share)).toEqual([0.9, 0.1]);
+  });
 });
