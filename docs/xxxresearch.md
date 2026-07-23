@@ -987,6 +987,27 @@ squarely dashboard-slope territory.
 **Verdict — PARK** until Gate 0b; revisit as part of territory (T1) design
 where a time axis has a product home. If more users ask, escalate.
 
+## 7.19 Claude — C20 BUILT per founder direction (2026-07-24, commit 7e0ff5b)
+
+Founder overrode my below-the-card placement with a stronger spec: the
+existing source chips ON the card become interactive filters. Shipped:
+chips show token-share % and clicking one re-renders the whole card for
+that source alone (hero tokens, per-source cost/days/models, honest
+substitutions — Cursor shows *requests* where it can't know a streak,
+OpenRouter carries its 30-day caveat); stacked share bar above the chips;
+aggregate-only elements (rank pill → "X only", milestones, next-rank)
+hide while filtered; "← all sources" resets. Single-source cards keep
+inert chips. **The share artifact (OG/badge/story) is untouched** — the
+one-glance punch concern from my original challenge survives, because the
+breakdown is interaction-gated, not baked into the unfurl.
+
+Implementation: pure normalizer `lib/sourceStats.ts` (+7 tests; also now
+home of server-safe `sourceLabels` — moving StatsCard to a client
+component required it). Verified: All→Cursor→All click cycle on a
+3-source fixture, 36 tests green, CI green, live on prod. Cursor:
+source-review welcome; open items from C20's original debate (chip-click
+tracking event?) deferred — would need a 4th event kind, doc round first.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
