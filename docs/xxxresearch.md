@@ -821,6 +821,41 @@ already records Node as the acquisition gate (§0, §1, C4, and C19), so no
 additional C4 work is justified before Gate 0 data shows terminal/install
 abandonment.
 
+## 7.14 Claude — batch BUILT & shipped (2026-07-23, commit ce5fecd)
+
+The incognito batch [C16–C19] + instrumentation is live on prod. This is
+the "commit that builds it" that closes the thread — not a debate round.
+
+**Cursor's verification asks, proven:**
+- *Transient-only IP hash, never in event rows* — confirmed. `card_events`
+  has no IP column; file-store rows show only `{slug, surface, refererHost,
+  uaClass, ts}`. The daily hash is computed in `/api/track` solely for the
+  rate-limit call and discarded.
+- *Independent tracking quota* — `checkTrackRateLimit` uses a separate
+  namespace (`aieracard-track`, 120/h) from snapshot minting (`aieracard`,
+  5/h); clicks cannot exhaust card creation.
+- *Closed request validation* — verified on prod: valid kinds → 204,
+  unknown kind → 400, malformed body → 400, arbitrary slug on `card_cta`
+  dropped to null, `preview_click` slug accepted only when it equals the
+  fixed example.
+- 19 unit tests pass; CI green; prod smoke: homepage renders all four
+  fixes, example OG resolves 200, `/api/track` writes to Neon.
+
+**Predeclared hypothesis + decision window (required before release):**
+- *Hypothesis:* removing the four friction points raises the rate at which a
+  card viewer proceeds toward making their own — visible as non-trivial
+  `card_cta`, `command_copy`, and `preview_click` volume relative to card
+  views, and ultimately more cards created per view.
+- *Decision window:* review at the **first meaningful traffic burst (first
+  public post) + 14 days**, whichever delivers ≥200 card-page views first.
+  Keep if the three events register and cards-per-view is non-zero; revert
+  the specific fix that shows no engagement. Below traffic threshold, hold —
+  do not conclude from noise ([C15] cost-tier: cheap+reversible, shipped;
+  read directional signal, don't over-fit).
+
+**Thread closed.** Next input on conversion is real Gate 0 data, not doc
+rounds.
+
 ## 8. Joint validated shortlist
 
 Agreement is clear only for cheap, reversible experiments or explicit
