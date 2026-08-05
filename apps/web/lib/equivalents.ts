@@ -18,18 +18,22 @@ export type ScaleEquivalent = {
 //   prompt: 0.10 Wh and 0.12 mL water. We use one such prompt per 1,000
 //   reported tokens as a coarse, non-personalized scaling convention.
 //   https://services.google.com/fh/files/misc/measuring_the_environmental_impact_of_delivering_ai_at_google_scale.pdf
-// - The International Energy Agency's Global EV Outlook 2025 reports a
-//   global-average electric-car consumption of about 0.18 kWh/km. This is an
-//   energy equivalent, not a claim about the transport impact of the snapshot.
-//   https://www.iea.org/reports/global-ev-outlook-2025/trends-in-electric-car-markets
+// - The U.S. Energy Information Administration reports average annual
+//   residential electricity use of 10,791 kWh, or about 29.6 kWh per day.
+//   https://www.eia.gov/tools/faqs/faq.php?id=97&t=3
 const ENGLISH_WORDS_PER_TOKEN = 0.75;
 const REPORTED_TOKENS_PER_REFERENCE_PROMPT = 1_000;
 const REFERENCE_PROMPT_WATER_ML = 0.12;
 const REFERENCE_PROMPT_ENERGY_WH = 0.1;
-const EV_KWH_PER_KM = 0.18;
+const AVERAGE_HOME_KWH_PER_DAY = 29.6;
 
 function englishWords(tokens: number): number {
   return tokens * ENGLISH_WORDS_PER_TOKEN;
+}
+
+function averageHomePowerText(days: number): string {
+  if (days < 0.1) return "less than 0.1 days of power for an average home";
+  return `${fmtQuantity(days)} days of power for an average home`;
 }
 
 export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
@@ -40,7 +44,7 @@ export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
   const referencePrompts = tokens / REPORTED_TOKENS_PER_REFERENCE_PROMPT;
   const waterLiters = (referencePrompts * REFERENCE_PROMPT_WATER_ML) / 1_000;
   const energyKwh = (referencePrompts * REFERENCE_PROMPT_ENERGY_WH) / 1_000;
-  const evDrivingKm = energyKwh / EV_KWH_PER_KM;
+  const averageHomePowerDays = energyKwh / AVERAGE_HOME_KWH_PER_DAY;
 
   return [
     {
@@ -62,8 +66,8 @@ export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
       text: `≈ ${fmtQuantity(energyKwh)} kWh of AI-serving electricity`,
     },
     {
-      id: "ev-driving",
-      text: `≈ ${fmtQuantity(evDrivingKm)} km driven in an EV`,
+      id: "average-home-power",
+      text: `≈ ${averageHomePowerText(averageHomePowerDays)}`,
     },
   ];
 }

@@ -15,8 +15,8 @@ describe("scaleEquivalents", () => {
         text: "≈ 0.1 kWh of AI-serving electricity",
       },
       {
-        id: "ev-driving",
-        text: "≈ 0.3 km driven in an EV",
+        id: "average-home-power",
+        text: "≈ less than 0.1 days of power for an average home",
       },
     ]);
   });
@@ -32,7 +32,7 @@ describe("scaleEquivalents", () => {
       "≈ 1.4B English words",
       "≈ 228 liters of AI-serving water",
       "≈ 190 kWh of AI-serving electricity",
-      "≈ 1,056 km driven in an EV",
+      "≈ 6.4 days of power for an average home",
     ]);
   });
 });
