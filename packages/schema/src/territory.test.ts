@@ -55,10 +55,28 @@ describe("composeTerritory", () => {
     expect(tower.tiles.filter((tile) => tile.role === "foundation").length).toBe(8);
   });
 
-  it("adds structured voids only to the higher-density territories", () => {
+  it("keeps the foundation solid and places high-density voids within the mass", () => {
     const tower = composeTerritory(payload(), 4);
     const apex = composeTerritory(payload(100_000_000_000), 8);
     expect(tower.tiles.some((tile) => tile.role === "void")).toBe(false);
-    expect(apex.tiles.some((tile) => tile.role === "void")).toBe(true);
+
+    const foundationY = Math.max(
+      ...apex.tiles
+        .filter((tile) => tile.role === "foundation")
+        .map((tile) => tile.y)
+    );
+    const voids = apex.tiles.filter((tile) => tile.role === "void");
+    expect(voids.length).toBeGreaterThan(0);
+    expect(voids.every((tile) => tile.y < foundationY - 1)).toBe(true);
+    expect(
+      voids.every((tile) =>
+        apex.tiles.some(
+          (neighbor) =>
+            neighbor.y === tile.y &&
+            Math.abs(neighbor.x - tile.x) === 1 &&
+            neighbor.role !== "void"
+        )
+      )
+    ).toBe(true);
   });
 });

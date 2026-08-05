@@ -99,15 +99,22 @@ export function composeTerritory(
   for (let column = 0; column < heights.length; column++) {
     const height = heights[column];
     const nearCrown = height >= tallest - 1 && Math.abs(column - center) <= 1.5;
+    const leftHeight = heights[column - 1] ?? 0;
+    const rightHeight = heights[column + 1] ?? 0;
 
     for (let floor = 0; floor < height; floor++) {
       const highFloor = floor >= height - 2;
+      // Gaps belong inside the upper mass, never in the plinth. Requiring
+      // neighboring columns at this floor keeps them as punched windows or
+      // courtyards rather than a transparent skirt around the silhouette.
+      const voidFloor = Math.max(2, Math.ceil(height * 0.28));
       const interiorVoid =
         level >= 5 &&
-        floor > 1 &&
+        floor >= voidFloor &&
         floor < height - 2 &&
-        Math.abs(column - center) < 1 &&
-        (random() < 0.2 || (level >= 7 && floor === Math.floor(height / 2)));
+        leftHeight > floor &&
+        rightHeight > floor &&
+        random() < 0.07 + (level - 5) * 0.02;
       const role: TerritoryTileRole = interiorVoid
         ? "void"
         : floor === 0
