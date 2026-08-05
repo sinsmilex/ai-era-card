@@ -82,14 +82,18 @@ export function buildBuilding(payload: SnapshotPayload): BuildingBlock[] {
 
   return tiles.map((tile, index) => {
     const active = palette.mosaicActive[index % palette.mosaicActive.length];
-    const idle = palette.mosaicIdle[index % palette.mosaicIdle.length];
     const color =
       tile.role === "window" || tile.role === "spire"
         ? active
         : tile.role === "void"
           ? palette.bg
           : tile.role === "foundation"
-            ? idle
+            // The foundation is the visual bottom row, not an empty shadow.
+            // Use the same opaque, high-contrast fill family as the mass.
+            ? palette.mosaicActive[
+                (index + palette.mosaicActive.length - 1) %
+                  palette.mosaicActive.length
+              ]
             : palette.mosaicActive[(index + 1) % palette.mosaicActive.length];
 
     return { ...tile, color };

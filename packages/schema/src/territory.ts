@@ -9,6 +9,10 @@ export type TerritoryTileRole =
 
 export interface TerritoryTile {
   x: number;
+  /**
+   * Screen-space row: y increases downward. The ground/foundation is the
+   * maximum y row, so every CSS and SVG renderer can place y directly.
+   */
   y: number;
   role: TerritoryTileRole;
 }
@@ -127,6 +131,8 @@ export function composeTerritory(
 
       tiles.push({
         x: left + column,
+        // Keep the foundation at the visual bottom (maximum screen-space y).
+        // Renderers intentionally map this coordinate directly to CSS/SVG y.
         y: rows - 1 - floor,
         role,
       });

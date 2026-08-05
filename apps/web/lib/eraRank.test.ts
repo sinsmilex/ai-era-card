@@ -90,6 +90,21 @@ describe("eraRank", () => {
     expect(apex.length).toBeGreaterThan(foundation.length);
   });
 
+  it("keeps the Tower's visual bottom row filled", () => {
+    const towerPayload = payload(1_500_000_000);
+    const tower = buildBuilding(towerPayload);
+    // CSS and SVG render y directly, so the maximum y row is visual bottom.
+    const bottomY = Math.max(...tower.map((block) => block.y));
+    const bottomRow = tower.filter((block) => block.y === bottomY);
+
+    expect(bottomRow.length).toBeGreaterThan(0);
+    expect(bottomRow.every((block) => block.role === "foundation")).toBe(true);
+    expect(bottomRow.every((block) => block.role !== "void")).toBe(true);
+    expect(bottomRow.every((block) => block.color !== eraPalette(towerPayload).bg)).toBe(
+      true
+    );
+  });
+
   it("builds a calm LinkedIn summary with known compute", () => {
     const line = linkedInShareLine(payload(1_500_000_000), "https://example.com/s/test");
     expect(line).toContain("TIER4 · TOWER");
