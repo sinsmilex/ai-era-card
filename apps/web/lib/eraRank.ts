@@ -132,7 +132,7 @@ export function eraRank(payload: SnapshotPayload): EraRank {
   return {
     level: current.level,
     name: current.name,
-    title: `L${current.level} · ${current.name.toUpperCase()}`,
+    title: `TIER${current.level} · ${current.name.toUpperCase()}`,
     nextLabel: next
       ? `${fmtCompact(next.minTokens)} → ${next.name}`
       : null,

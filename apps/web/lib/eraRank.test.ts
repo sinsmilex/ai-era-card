@@ -46,7 +46,7 @@ describe("eraRank", () => {
     const r = eraRank(payload(1_500_000_000));
     expect(r.level).toBe(4);
     expect(r.name).toBe("Tower");
-    expect(r.title).toBe("L4 · TOWER");
+    expect(r.title).toBe("TIER4 · TOWER");
     expect(r.nextLabel).toContain("Citadel");
   });
 
@@ -85,7 +85,7 @@ describe("eraRank", () => {
 
   it("builds a calm LinkedIn summary with known compute", () => {
     const line = linkedInShareLine(payload(1_500_000_000), "https://example.com/s/test");
-    expect(line).toContain("L4 · TOWER");
+    expect(line).toContain("TIER4 · TOWER");
     expect(line).toContain("1.5B tokens");
     expect(line).toContain("50 active days");
     expect(line).toContain("$100 compute");

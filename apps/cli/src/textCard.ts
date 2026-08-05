@@ -112,7 +112,7 @@ export function renderTextCard(payload: SnapshotPayload): string {
   const artwork = renderTerminalMosaic(payload);
   const stats = [
     `AI ERA CARD · ${display.handle || "anonymous"}`,
-    `L${rank.level} · ${rank.name.toUpperCase()}`,
+    `TIER${rank.level} · ${rank.name.toUpperCase()}`,
     `${fmtTokens(aggregate.totalTokens)} tokens`,
     `${compute} · ${aggregate.distinctModels.length} models`,
     `${aggregate.totalActiveDays} active days · ${aggregate.longestStreakDays}-day streak`,

@@ -54,6 +54,7 @@ describe("renderTextCard", () => {
     expect(lines).toHaveLength(10);
     expect(lines.every((line) => line.length === 66)).toBe(true);
     expect(card).toContain("AI ERA CARD · SinSmile");
+    expect(card).toContain("TIER4 · TOWER");
     expect(card).toContain("@");
   });
 

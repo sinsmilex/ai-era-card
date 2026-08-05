@@ -31,7 +31,7 @@ export function ExamplePreview({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageSrc}
-        alt="Example AI Era Card — 1.4B tokens, L4 Tower"
+        alt="Example AI Era Card — 1.4B tokens, TIER4 Tower"
         width={1200}
         height={630}
         style={{ width: "100%", height: "auto", display: "block" }}
