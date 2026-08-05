@@ -5,17 +5,14 @@ import type { SnapshotPayload } from "@aieracard/schema";
 
 // Local-only baseline so a re-run can say "+240M since your last card"
 // without accounts, email, or any server-side identity. The file contains
-// nothing that isn't already public on the previous card: the aggregate
-// numbers, the date, the schema version, the enabled-source set, and the
-// card's own slug. Never paths, prompts, or raw logs. Delete it (or pass
+// aggregate numbers, the date, the schema version, and the enabled-source
+// set. Never paths, prompts, raw logs, card URLs, or slugs. Delete it (or pass
 // --no-baseline) to opt out at any time.
 
 export interface BaselineState {
   stateVersion: 1;
   schemaVersion: number;
   savedAt: string; // the previous card's generatedAt (YYYY-MM-DD)
-  slug: string | null;
-  url: string | null;
   sources: string[]; // sorted source keys enabled on the previous card
   aggregate: SnapshotPayload["aggregate"];
 }
@@ -73,17 +70,11 @@ export async function writeBaseline(state: BaselineState): Promise<void> {
   await writeFile(baselinePath(), JSON.stringify(state, null, 2), "utf8");
 }
 
-export function baselineFromPayload(
-  payload: SnapshotPayload,
-  slug: string | null,
-  url: string | null
-): BaselineState {
+export function baselineFromPayload(payload: SnapshotPayload): BaselineState {
   return {
     stateVersion: 1,
     schemaVersion: payload.schemaVersion,
     savedAt: payload.generatedAt,
-    slug,
-    url,
     sources: sourceKeys(payload),
     aggregate: payload.aggregate,
   };

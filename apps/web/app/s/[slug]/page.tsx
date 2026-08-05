@@ -4,9 +4,8 @@ import { notFound } from "next/navigation";
 import { buildShareCaption } from "@aieracard/schema/src/shareCaption";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
-import { appUrl, fmtMonthYear, fmtTokens } from "@/lib/format";
+import { appUrl, fmtTokens } from "@/lib/format";
 import { eraPalette, eraRank, linkedInShareLine } from "@/lib/eraRank";
-import { lineageInfo, type LineageInfo } from "@/lib/lineage";
 import { StatsCard } from "@/components/StatsCard";
 import { sourceLabels } from "@/lib/sourceStats";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
@@ -49,15 +48,6 @@ export default async function CardPage({ params }: Props) {
   const linkedInPost = linkedInShareLine(rec.payload, url);
   const badgeMarkdown = `[![My AI era](${url}/card.svg)](${url})`;
 
-  // Self-linked lineage: render only if the previous slug resolves and
-  // isn't this card itself. Unresolvable or absent links are ignored.
-  let lineage: LineageInfo | null = null;
-  const prevSlug = rec.payload.display.previousSlug;
-  if (prevSlug && prevSlug !== slug) {
-    const prev = await store.getBySlug(prevSlug);
-    if (prev) lineage = lineageInfo(rec.payload, prev.payload, prevSlug);
-  }
-
   return (
     <main
       style={{
@@ -75,31 +65,6 @@ export default async function CardPage({ params }: Props) {
       }}
     >
       <StatsCard payload={rec.payload} />
-
-      {lineage && (
-        <p
-          style={{
-            color: palette.muted,
-            fontSize: 12,
-            textAlign: "center",
-            maxWidth: 500,
-            lineHeight: 1.5,
-            margin: "-16px 0 0",
-          }}
-        >
-          Evolution · previous card:{" "}
-          <a href={`/s/${lineage.slug}`} style={{ color: palette.accent }}>
-            {lineage.title} · {fmtTokens(lineage.tokens)} tokens ·{" "}
-            {fmtMonthYear(lineage.date)}
-          </a>
-          {lineage.deltaTokens != null
-            ? ` → ${lineage.deltaTokens >= 0 ? "+" : "−"}${fmtTokens(
-                Math.abs(lineage.deltaTokens)
-              )} since`
-            : " · sources changed, no delta"}{" "}
-          · self-linked
-        </p>
-      )}
 
       <MakeOwnButton accent={palette.accent} bg={palette.bg} />
 

@@ -66,7 +66,7 @@ function payload(
 
 describe("compareBaseline", () => {
   it("reports a signed token and active-day delta when comparable", () => {
-    const base = baselineFromPayload(payload(100_000_000), "abc123XYZ0", null);
+    const base = baselineFromPayload(payload(100_000_000));
     const delta = compareBaseline(
       base,
       payload(340_000_000, { totalActiveDays: 25 }),
@@ -81,7 +81,7 @@ describe("compareBaseline", () => {
   });
 
   it("announces a crossed tier only when the tier changed", () => {
-    const base = baselineFromPayload(payload(100_000_000), null, null);
+    const base = baselineFromPayload(payload(100_000_000));
     const crossed = compareBaseline(base, payload(800_000_000), rankTitleFor);
     expect(crossed.comparable && crossed.crossedRank).toBe("TIER4 · TOWER");
     const same = compareBaseline(base, payload(120_000_000), rankTitleFor);
@@ -89,7 +89,7 @@ describe("compareBaseline", () => {
   });
 
   it("refuses a delta when the source set changed", () => {
-    const base = baselineFromPayload(payload(100_000_000), null, null);
+    const base = baselineFromPayload(payload(100_000_000));
     const delta = compareBaseline(
       base,
       payload(340_000_000, {}, ["claudeCode", "cursor"]),
@@ -105,7 +105,7 @@ describe("compareBaseline", () => {
 
   it("refuses a delta when the schema version changed", () => {
     const base = {
-      ...baselineFromPayload(payload(100_000_000), null, null),
+      ...baselineFromPayload(payload(100_000_000)),
       schemaVersion: 0,
     };
     const delta = compareBaseline(base, payload(340_000_000), rankTitleFor);
@@ -114,7 +114,7 @@ describe("compareBaseline", () => {
   });
 
   it("shows an honest negative delta when logs shrank", () => {
-    const base = baselineFromPayload(payload(340_000_000), null, null);
+    const base = baselineFromPayload(payload(340_000_000));
     const delta = compareBaseline(base, payload(100_000_000), rankTitleFor);
     expect(delta.comparable && delta.tokensDelta).toBe(-240_000_000);
   });
@@ -131,11 +131,7 @@ describe("baseline file io", () => {
   it("round-trips state through AIERACARD_HOME and keeps only aggregates", async () => {
     dir = await mkdtemp(join(tmpdir(), "aieracard-test-"));
     process.env.AIERACARD_HOME = dir;
-    const state = baselineFromPayload(
-      payload(100_000_000),
-      "abc123XYZ0",
-      "https://example.com/s/abc123XYZ0"
-    );
+    const state = baselineFromPayload(payload(100_000_000));
     await writeBaseline(state);
     expect(await readBaseline()).toEqual(state);
     const raw = await readFile(baselinePath(), "utf8");
@@ -146,7 +142,7 @@ describe("baseline file io", () => {
   it("returns null for a corrupt or foreign state file", async () => {
     dir = await mkdtemp(join(tmpdir(), "aieracard-test-"));
     process.env.AIERACARD_HOME = dir;
-    await writeBaseline(baselineFromPayload(payload(1), null, null));
+    await writeBaseline(baselineFromPayload(payload(1)));
     await writeFile(baselinePath(), "{not json", "utf8");
     expect(await readBaseline()).toBeNull();
     await writeFile(baselinePath(), JSON.stringify({ stateVersion: 99 }), "utf8");

@@ -6,7 +6,7 @@ import type { OpenRouterResult } from "./collectors/openrouter.js";
 import type { CursorResult } from "./collectors/cursorCsv.js";
 import type { CodexResult } from "./collectors/codex.js";
 
-export const CLI_VERSION = "0.1.11";
+export const CLI_VERSION = "0.1.12";
 
 export function buildPayload(opts: {
   claudeCode: ClaudeCodeResult | null;
@@ -14,10 +14,8 @@ export function buildPayload(opts: {
   cursor: CursorResult | null;
   codex: CodexResult | null;
   handle: string | null;
-  /** Slug of the author's previous card (from local baseline state). */
-  previousSlug?: string | null;
 }): SnapshotPayload {
-  const { claudeCode, openrouter, cursor, codex, handle, previousSlug } = opts;
+  const { claudeCode, openrouter, cursor, codex, handle } = opts;
 
   const allDates = new Set<string>();
   for (const r of [claudeCode, openrouter, cursor, codex]) {
@@ -92,6 +90,6 @@ export function buildPayload(opts: {
       firstActivityDate: first ?? today,
       lastActivityDate: last ?? today,
     },
-    display: { handle, ...(previousSlug ? { previousSlug } : {}) },
+    display: { handle },
   };
 }

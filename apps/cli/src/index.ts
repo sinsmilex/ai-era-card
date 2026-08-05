@@ -47,7 +47,6 @@ const { values: args } = parseArgs({
     "no-codex": { type: "boolean", default: false },
     handle: { type: "string" },
     "no-baseline": { type: "boolean", default: false },
-    "no-link": { type: "boolean", default: false },
     endpoint: { type: "string" },
     open: { type: "boolean", default: false },
     help: { type: "boolean", default: false },
@@ -90,7 +89,6 @@ Options:
   --no-cursor            skip Cursor
   --handle <name>        display name on the card (unverified)
   --no-baseline          don't save a local baseline for "since last card" deltas
-  --no-link              don't link this card to your previous one
   --endpoint <url>       backend base URL (default: ${DEFAULT_ENDPOINT})
   --open                 open the card URL in your browser`);
     return;
@@ -278,7 +276,6 @@ Options:
     cursor,
     codex,
     handle,
-    previousSlug: !args["no-link"] ? (baseline?.slug ?? null) : null,
   });
   const parsed = snapshotPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -351,7 +348,7 @@ Options:
     const body = await res.text().catch(() => "");
     bail(`Server returned ${res.status}: ${body.slice(0, 300)}`);
   }
-  const { slug, url } = (await res.json()) as { slug: string; url: string };
+  const { url } = (await res.json()) as { url: string };
   s.stop("Card created");
   console.log(renderTextCard(payload));
   p.log.success(`Your permanent card URL:\n  ${url}`);
@@ -359,11 +356,11 @@ Options:
 
   if (!args["no-baseline"]) {
     try {
-      await writeBaseline(baselineFromPayload(payload, slug ?? null, url ?? null));
+      await writeBaseline(baselineFromPayload(payload));
       p.log.info(
         `Baseline saved to ${baselinePath()} (aggregate numbers only) —\n` +
           "your next run will show the delta. Delete the file anytime;\n" +
-          "--no-baseline skips saving, --no-link skips linking cards."
+          "--no-baseline skips saving."
       );
     } catch {
       // A failed local write must never fail the created card.
