@@ -28,14 +28,16 @@ Reddit и X находится там.
 - [x] Отдельно проверить Cursor CSV fallback с настоящим экспортом CSV:
   опубликованный `aieracard@0.1.4` с `--cursor-csv` обработал CSV напрямую,
   без Cursor API.
-- ⚠️ `GET /api/stats` без Bearer-секрета возвращает `401`. В Vercel есть
-  `SNAPSHOT_IP_SALT`, но проверка с его production-значением тоже вернула
-  `401`; baseline пока не записан. Основателю нужно подтвердить, что текущий
-  production deployment видит переменную (или задать `STATS_SECRET` и
-  redeploy), не раскрывая значение секрета.
+- ✅ Production `GET /api/stats` восстановлен 2026-08-05: отдельный
+  `STATS_SECRET` задан в Vercel Production, production redeploy завершён.
+  Endpoint остаётся закрытым: без Bearer-секрета возвращает `401`.
+- ✅ **Gate 0 baseline recorded — 2026-08-05T21:24:08+02:00:**
+  `totalCards` 12; `cardsLast7d` 1. Views за 30 дней: page 203, og 41,
+  card_cta 19, command_copy 13, badge 2, preview_click 1, story 1.
+  Top referers за 30 дней: ai-era-card.vercel.app 48, web.telegram.org 23,
+  www.linkedin.com 2. Это агрегаты без PII; endpoint не возвращает slugs.
 
-**Следующие действия основателя:** устранить доступ к stats и записать
-начальные значения, затем лично отправить готовый DM 5–10 подходящим
+**Следующие действия основателя:** лично отправить готовый DM 5–10 подходящим
 знакомым разработчикам. Не переходить к публичным постам до этих шагов.
 
 ## До первого поста
@@ -58,11 +60,10 @@ Reddit и X находится там.
 - [ ] Подготовить одно предложение: “AI Era Card turns your local AI coding
   usage into a self-reported, permanent share card; it shows the aggregate
   payload before upload.”
-- [ ] **Blocked:** настроить production-доступ к `/api/stats` и записать
-  начальные значения: `totalCards`, последние slugs и referer hosts.
-  `SNAPSHOT_IP_SALT` есть в Vercel, но текущий endpoint вернул `401` и с
-  этим Bearer-значением. Не публиковать секрет авторизации и не вставлять его
-  в скриншоты.
+- [x] Настроить production-доступ к `/api/stats` и записать baseline
+  агрегатов: `totalCards`, view surfaces и referer hosts
+  (2026-08-05T21:24:08+02:00). Не публиковать Bearer-секрет и не вставлять
+  его в скриншоты.
 
 ## Последовательность с нуля
 
