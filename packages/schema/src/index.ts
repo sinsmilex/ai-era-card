@@ -128,3 +128,10 @@ export type CursorSource = z.infer<typeof cursorSourceSchema>;
 export type CodexSource = z.infer<typeof codexSourceSchema>;
 export type Aggregate = z.infer<typeof aggregateSchema>;
 export type SnapshotPayload = z.infer<typeof snapshotPayloadSchema>;
+
+export {
+  composeTerritory,
+  type TerritoryComposition,
+  type TerritoryTile,
+  type TerritoryTileRole,
+} from "./territory";

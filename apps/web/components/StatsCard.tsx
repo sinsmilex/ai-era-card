@@ -159,8 +159,13 @@ export function StatsCard({
               top: (block.y - buildingBoundary.minY) * 18,
               width: 14,
               height: 14,
-              borderRadius: 3,
+              borderRadius: 1,
               background: block.color,
+              border:
+                block.role === "void"
+                  ? `1px solid ${palette.accentSoft}`
+                  : "1px solid rgba(255, 255, 255, 0.07)",
+              opacity: block.role === "void" ? 0.62 : 1,
             }}
           />
         ))}

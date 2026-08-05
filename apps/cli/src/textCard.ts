@@ -1,4 +1,4 @@
-import type { SnapshotPayload } from "@aieracard/schema";
+import { composeTerritory, type SnapshotPayload } from "@aieracard/schema";
 
 const RANKS = [
   { level: 1, name: "Foundation", minTokens: 0 },
@@ -22,17 +22,6 @@ function fmtUsd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /** Tier label for a token total, e.g. "TIER4 · TOWER" — used by the card
  * body and by the baseline delta to announce a crossed tier. */
 export function rankTitleFor(totalTokens: number): string {
@@ -40,7 +29,8 @@ export function rankTitleFor(totalTokens: number): string {
   return `TIER${rank.level} · ${rank.name.toUpperCase()}`;
 }
 
-// A terminal-sized version of the web card's deterministic landmark.
+// A terminal-sized raster of the shared territory composer. The terminal has
+// fewer cells, but keeps the same rank massing and seeded tile roles as web.
 export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const width = 10;
   const height = 7;
@@ -48,38 +38,26 @@ export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const rank = RANKS.findLast(
     (candidate) => aggregate.totalTokens >= candidate.minTokens
   )!;
-  const seed =
-    (aggregate.totalTokens % 1_000_003) * 31 +
-    aggregate.totalActiveDays * 7 +
-    aggregate.distinctModels.length * 131 +
-    aggregate.longestStreakDays * 17;
-  const random = mulberry32(seed);
+  const { tiles } = composeTerritory(payload, rank.level);
+  const minX = Math.min(...tiles.map((tile) => tile.x));
+  const maxX = Math.max(...tiles.map((tile) => tile.x));
+  const minY = Math.min(...tiles.map((tile) => tile.y));
+  const maxY = Math.max(...tiles.map((tile) => tile.y));
   const blocks = Array.from({ length: height }, () =>
-    Array.from({ length: width }, () => {
-      const brightness = random();
-      // ASCII keeps the landmark visible in Windows terminals whose fonts render
-      // Unicode shade glyphs as nearly blank cells.
-      return brightness < 0.58 ? "." : brightness < 0.88 ? "+" : "#";
-    })
+    Array.from({ length: width }, () => ".")
   );
-  const buildingWidth = Math.min(width, 3 + rank.level);
-  const baseHeight = Math.min(height, rank.level + 1);
-  const left = Math.floor((width - buildingWidth) / 2);
+  const glyph = {
+    foundation: "#",
+    core: "#",
+    spire: "@",
+    window: "+",
+    void: ".",
+  } as const;
 
-  for (let x = 0; x < buildingWidth; x++) {
-    const centerDistance = Math.abs(x - (buildingWidth - 1) / 2);
-    const shoulder = Math.floor(centerDistance / 1.8);
-    const variation = random() > 0.72 ? 1 : random() < 0.24 ? -1 : 0;
-    const columnHeight = Math.max(
-      1,
-      Math.min(height, baseHeight - shoulder + variation)
-    );
-
-    for (let floor = 0; floor < columnHeight; floor++) {
-      const brightness = random();
-      blocks[height - 1 - floor][left + x] =
-        brightness < 0.18 ? "." : brightness < 0.5 ? "+" : brightness < 0.82 ? "#" : "@";
-    }
+  for (const tile of tiles) {
+    const x = Math.round(((tile.x - minX) / (maxX - minX || 1)) * (width - 1));
+    const y = Math.round(((tile.y - minY) / (maxY - minY || 1)) * (height - 1));
+    blocks[y][x] = glyph[tile.role];
   }
 
   return blocks.map((row) => row.join(""));

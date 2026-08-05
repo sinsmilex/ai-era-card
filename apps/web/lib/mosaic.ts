@@ -1,4 +1,8 @@
-import type { SnapshotPayload } from "@aieracard/schema";
+import {
+  composeTerritory,
+  type SnapshotPayload,
+  type TerritoryTileRole,
+} from "@aieracard/schema";
 import { eraPalette, eraRank } from "./eraRank";
 
 // Deterministic "city blocks" mosaic derived from the user's stats.
@@ -13,6 +17,7 @@ export interface BuildingBlock {
   color: string;
   x: number;
   y: number;
+  role: TerritoryTileRole;
 }
 
 export function buildingBounds(blocks: BuildingBlock[]) {
@@ -71,42 +76,22 @@ export function buildMosaic(
 // silhouette are deterministic from aggregate-only stats, so this exact
 // geometry can later become the user's plot in the shared atlas.
 export function buildBuilding(payload: SnapshotPayload): BuildingBlock[] {
-  const a = payload.aggregate;
-  const seed =
-    (a.totalTokens % 1_000_003) * 31 +
-    a.totalActiveDays * 7 +
-    a.distinctModels.length * 131 +
-    a.longestStreakDays * 17;
-  const rnd = mulberry32(seed);
   const palette = eraPalette(payload);
   const { level } = eraRank(payload);
-  const columns = 10;
-  const rows = 9;
-  const width = Math.min(columns, 3 + level);
-  const baseHeight = Math.min(rows, level + 1);
-  const left = Math.floor((columns - width) / 2);
-  const blocks: BuildingBlock[] = [];
+  const { tiles } = composeTerritory(payload, level);
 
-  for (let x = 0; x < width; x++) {
-    const centerDistance = Math.abs(x - (width - 1) / 2);
-    const shoulder = Math.floor(centerDistance / 1.8);
-    const variation = rnd() > 0.72 ? 1 : rnd() < 0.24 ? -1 : 0;
-    const height = Math.max(
-      1,
-      Math.min(rows, baseHeight - shoulder + variation)
-    );
+  return tiles.map((tile, index) => {
+    const active = palette.mosaicActive[index % palette.mosaicActive.length];
+    const idle = palette.mosaicIdle[index % palette.mosaicIdle.length];
+    const color =
+      tile.role === "window" || tile.role === "spire"
+        ? active
+        : tile.role === "void"
+          ? palette.bg
+          : tile.role === "foundation"
+            ? idle
+            : palette.mosaicActive[(index + 1) % palette.mosaicActive.length];
 
-    for (let floor = 0; floor < height; floor++) {
-      const litChance = Math.min(0.82, 0.32 + level * 0.06);
-      const colors =
-        rnd() < litChance ? palette.mosaicActive : palette.mosaicIdle;
-      blocks.push({
-        x: left + x,
-        y: rows - 1 - floor,
-        color: colors[Math.floor(rnd() * colors.length)],
-      });
-    }
-  }
-
-  return blocks;
+    return { ...tile, color };
+  });
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SnapshotPayload } from "@aieracard/schema";
 import { eraMilestones, eraPalette, eraRank, linkedInShareLine } from "./eraRank";
-import { buildBuilding } from "./mosaic";
+import { buildingBounds, buildBuilding } from "./mosaic";
 
 function payload(tokens: number, extras: Partial<SnapshotPayload["aggregate"]> = {}): SnapshotPayload {
   return {
@@ -78,8 +78,15 @@ describe("eraRank", () => {
 
   it("grows a deterministic territory silhouette with rank", () => {
     const foundation = buildBuilding(payload(1_000_000));
+    const tower = buildBuilding(payload(1_500_000_000));
     const apex = buildBuilding(payload(100_000_000_000));
     expect(buildBuilding(payload(1_000_000))).toEqual(foundation);
+    const foundationBounds = buildingBounds(foundation);
+    const towerBounds = buildingBounds(tower);
+    expect(towerBounds.maxY - towerBounds.minY).toBeGreaterThan(
+      foundationBounds.maxY - foundationBounds.minY
+    );
+    expect(tower.filter((block) => block.role === "spire").length).toBeGreaterThan(0);
     expect(apex.length).toBeGreaterThan(foundation.length);
   });
 
