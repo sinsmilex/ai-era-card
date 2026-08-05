@@ -103,18 +103,15 @@ describe("eraRank", () => {
     const m = eraMilestones(p);
     expect(m.length).toBeGreaterThan(4);
     expect(m[0].id).toBe("1b"); // token tier leads
-    expect(m.map((x) => x.id)).toContain("era3y");
     expect(m.map((x) => x.id)).toContain("streak100");
     expect(m.map((x) => x.id)).toContain("spend5k");
   });
 
-  it("awards tenure from firstActivityDate vs generatedAt, deterministically", () => {
+  it("has no tenure badge — the card's own 'since' line covers it", () => {
     const m = eraMilestones(
-      payload(50_000_000, { firstActivityDate: "2024-08-01" })
+      payload(50_000_000, { firstActivityDate: "2023-05-01" })
     );
-    // generatedAt is 2026-07-18 — two weeks short of 2 full years.
-    expect(m.some((x) => x.id === "era1y")).toBe(true);
-    expect(m.some((x) => x.id === "era2y")).toBe(false);
+    expect(m.some((x) => x.id.startsWith("era"))).toBe(false);
   });
 
   it("awards daily density only with a 10-day baseline", () => {

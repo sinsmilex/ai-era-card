@@ -152,19 +152,12 @@ function daysInclusive(from: string, to: string): number {
   return Math.floor(ms / 86_400_000) + 1;
 }
 
-// Full calendar years elapsed from `from` to `to` (both YYYY-MM-DD).
-function fullYearsBetween(from: string, to: string): number {
-  if (to < from) return 0;
-  const years = Number(to.slice(0, 4)) - Number(from.slice(0, 4));
-  return to.slice(5) >= from.slice(5) ? years : years - 1;
-}
-
 // Every badge is a fact earned from real aggregates — no XP, no locked
 // slots, no participation trophies. Returned in priority order (rarest /
 // most impressive first): callers that can only fit a few (OG image,
 // story) take the head of the list; the card page shows them all.
-// Dates compare against payload.generatedAt, never the clock, so the same
-// payload renders the same badges forever.
+// No tenure badge: the card's own "since <month year>" line already says
+// it, and a floor-years label ("1+ year") reads wrong next to it.
 export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
   const a = payload.aggregate;
   const cc = payload.sources.claudeCode;
@@ -190,12 +183,6 @@ export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
     out.push({ id: "100m", label: "100M tokens" });
   else if (a.totalTokens >= 10_000_000)
     out.push({ id: "10m", label: "10M tokens" });
-
-  // Tenure in the era.
-  const years = fullYearsBetween(a.firstActivityDate, payload.generatedAt);
-  if (years >= 3) out.push({ id: "era3y", label: "3+ years in the era" });
-  else if (years >= 2) out.push({ id: "era2y", label: "2+ years in the era" });
-  else if (years >= 1) out.push({ id: "era1y", label: "1+ year in the era" });
 
   if (a.longestStreakDays >= 100)
     out.push({ id: "streak100", label: "100-day streak" });
