@@ -9,6 +9,13 @@ export function fmtUsd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
+// Whole quantities should not expose noisy precision; small scale comparisons
+// retain one decimal so that they do not misleadingly round down to zero.
+export function fmtQuantity(n: number): string {
+  if (n < 10) return n.toFixed(1).replace(/\.0$/, "");
+  return Math.round(n).toLocaleString("en-US");
+}
+
 // A source's token share as a percent that never reads "0%" for a real,
 // non-zero source — a tiny slice (e.g. a little Claude Code next to heavy
 // Cursor use) shows a decimal instead of rounding away to zero.

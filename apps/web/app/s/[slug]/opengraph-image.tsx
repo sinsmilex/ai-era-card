@@ -3,13 +3,13 @@ import { headers } from "next/headers";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
 import { buildingBounds, buildBuilding } from "@/lib/mosaic";
+import { scaleEquivalents } from "@/lib/equivalents";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
   fmtMonthYear,
   fmtTokens,
   fmtUsd,
-  warAndPeaceEquivalent,
 } from "@/lib/format";
 
 // The OG image is the viral mechanic — Slack/X/Discord unfurl.
@@ -60,6 +60,7 @@ export default async function OgImage({
   const building = buildBuilding(p);
   const buildingBoundary = buildingBounds(building);
   const host = appUrl().replace(/^https?:\/\//, "");
+  const primaryEquivalent = scaleEquivalents(a.totalTokens)[0];
 
   const metrics = [
     a.totalCostUsd != null
@@ -177,7 +178,7 @@ export default async function OgImage({
             marginBottom: 32,
           }}
         >
-          ~{warAndPeaceEquivalent(a.totalTokens)}× War and Peace
+          {primaryEquivalent?.text}
           {milestones[0] ? ` · ${milestones[0].label}` : ""}
         </div>
 

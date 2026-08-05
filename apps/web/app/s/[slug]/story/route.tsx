@@ -3,13 +3,13 @@ import { NextRequest } from "next/server";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
 import { buildBuilding, buildingBounds } from "@/lib/mosaic";
+import { scaleEquivalents } from "@/lib/equivalents";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   appUrl,
   fmtMonthYear,
   fmtTokens,
   fmtUsd,
-  warAndPeaceEquivalent,
 } from "@/lib/format";
 
 // Vertical 1080×1920 export for Instagram/TikTok Stories — platforms with
@@ -40,6 +40,7 @@ export async function GET(
   const blocks = buildBuilding(p);
   const bounds = buildingBounds(blocks);
   const host = appUrl().replace(/^https?:\/\//, "");
+  const primaryEquivalent = scaleEquivalents(a.totalTokens)[0];
 
   const CELL = 52;
   const buildingW = (bounds.maxX - bounds.minX + 1) * CELL;
@@ -158,7 +159,7 @@ export async function GET(
             marginTop: 14,
           }}
         >
-          ~{warAndPeaceEquivalent(a.totalTokens)}× War and Peace
+          {primaryEquivalent?.text}
         </div>
 
         <div

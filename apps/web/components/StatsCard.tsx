@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SnapshotPayload } from "@aieracard/schema";
 import { buildingBounds, buildBuilding } from "@/lib/mosaic";
+import { scaleEquivalents } from "@/lib/equivalents";
 import { eraMilestones, eraPalette, eraRank } from "@/lib/eraRank";
 import {
   presentSources,
@@ -14,7 +15,6 @@ import {
   fmtShare,
   fmtTokens,
   fmtUsd,
-  warAndPeaceEquivalent,
 } from "@/lib/format";
 
 const SOURCE_COLORS: Record<SourceKey, string> = {
@@ -44,6 +44,38 @@ export function StatsCard({
   const view = selected ? views.find((v) => v.key === selected) ?? null : null;
 
   const shownTokens = view ? view.tokens : a.totalTokens;
+  const equivalents =
+    shownTokens != null ? scaleEquivalents(shownTokens) : [];
+  const [equivalentIndex, setEquivalentIndex] = useState(0);
+  const [equivalentVisible, setEquivalentVisible] = useState(true);
+
+  useEffect(() => {
+    setEquivalentIndex(0);
+    setEquivalentVisible(true);
+
+    if (
+      equivalents.length < 2 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    let fadeTimer: number | undefined;
+    const rotation = window.setInterval(() => {
+      setEquivalentVisible(false);
+      fadeTimer = window.setTimeout(() => {
+        setEquivalentIndex((index) => (index + 1) % equivalents.length);
+        setEquivalentVisible(true);
+      }, 160);
+    }, 5_000);
+
+    return () => {
+      window.clearInterval(rotation);
+      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer);
+    };
+  }, [equivalents.length, shownTokens]);
+
+  const equivalent = equivalents[equivalentIndex % equivalents.length];
   const shownFirstDate = view ? view.firstDate : a.firstActivityDate;
   const footerContext = view
     ? "Filtered view · not the share snapshot"
@@ -198,10 +230,12 @@ export function StatsCard({
             marginTop: 6,
             marginBottom: 28,
             minHeight: 18,
+            opacity: equivalentVisible ? 1 : 0,
+            transition: "opacity 160ms ease",
           }}
         >
-          {shownTokens != null && shownTokens > 0
-            ? `≈ ${warAndPeaceEquivalent(shownTokens).toLocaleString("en-US")} copies of War and Peace`
+          {equivalent
+            ? equivalent.text
             : view
               ? "Token count not reported by this source."
               : ""}
