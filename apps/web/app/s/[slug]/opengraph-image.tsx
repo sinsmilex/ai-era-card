@@ -55,7 +55,8 @@ export default async function OgImage({
   const a = p.aggregate;
   const palette = eraPalette(p);
   const rank = eraRank(p);
-  const milestones = eraMilestones(p);
+  // OG must land in one glance — cap at the 4 rarest badges.
+  const milestones = eraMilestones(p).slice(0, 4);
   const building = buildBuilding(p);
   const buildingBoundary = buildingBounds(building);
   const host = appUrl().replace(/^https?:\/\//, "");

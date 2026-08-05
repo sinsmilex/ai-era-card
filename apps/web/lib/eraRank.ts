@@ -146,8 +146,29 @@ function fmtCompact(n: number): string {
   return String(n);
 }
 
+// Whole days between two YYYY-MM-DD dates, inclusive of both endpoints.
+function daysInclusive(from: string, to: string): number {
+  const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
+  return Math.floor(ms / 86_400_000) + 1;
+}
+
+// Full calendar years elapsed from `from` to `to` (both YYYY-MM-DD).
+function fullYearsBetween(from: string, to: string): number {
+  if (to < from) return 0;
+  const years = Number(to.slice(0, 4)) - Number(from.slice(0, 4));
+  return to.slice(5) >= from.slice(5) ? years : years - 1;
+}
+
+// Every badge is a fact earned from real aggregates — no XP, no locked
+// slots, no participation trophies. Returned in priority order (rarest /
+// most impressive first): callers that can only fit a few (OG image,
+// story) take the head of the list; the card page shows them all.
+// Dates compare against payload.generatedAt, never the clock, so the same
+// payload renders the same badges forever.
 export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
   const a = payload.aggregate;
+  const cc = payload.sources.claudeCode;
+  const cx = payload.sources.codex;
   const sources = [
     payload.sources.claudeCode,
     payload.sources.codex,
@@ -155,6 +176,8 @@ export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
     payload.sources.openrouter,
   ].filter(Boolean).length;
   const out: EraMilestone[] = [];
+
+  // Token volume — highest crossed tier only.
   if (a.totalTokens >= 100_000_000_000)
     out.push({ id: "100b", label: "100B tokens" });
   else if (a.totalTokens >= 20_000_000_000)
@@ -165,18 +188,84 @@ export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
     out.push({ id: "1b", label: "1B tokens club" });
   else if (a.totalTokens >= 100_000_000)
     out.push({ id: "100m", label: "100M tokens" });
-  if (a.totalActiveDays >= 365)
+  else if (a.totalTokens >= 10_000_000)
+    out.push({ id: "10m", label: "10M tokens" });
+
+  // Tenure in the era.
+  const years = fullYearsBetween(a.firstActivityDate, payload.generatedAt);
+  if (years >= 3) out.push({ id: "era3y", label: "3+ years in the era" });
+  else if (years >= 2) out.push({ id: "era2y", label: "2+ years in the era" });
+  else if (years >= 1) out.push({ id: "era1y", label: "1+ year in the era" });
+
+  if (a.longestStreakDays >= 100)
+    out.push({ id: "streak100", label: "100-day streak" });
+  else if (a.longestStreakDays >= 30)
+    out.push({ id: "streak30", label: "30-day streak" });
+
+  if (a.totalActiveDays >= 500)
+    out.push({ id: "500d", label: "500 active days" });
+  else if (a.totalActiveDays >= 365)
     out.push({ id: "365d", label: "365 active days" });
   else if (a.totalActiveDays >= 100)
     out.push({ id: "100d", label: "100 active days" });
-  if (a.longestStreakDays >= 30)
-    out.push({ id: "streak30", label: "30-day streak" });
-  if (a.distinctModels.length >= 10)
+
+  // Daily density — needs a real baseline of days to be honest.
+  if (a.totalActiveDays >= 10) {
+    const perDay = a.totalTokens / a.totalActiveDays;
+    if (perDay >= 20_000_000)
+      out.push({ id: "daily20m", label: "20M+ tokens/day" });
+    else if (perDay >= 5_000_000)
+      out.push({ id: "daily5m", label: "5M+ tokens/day" });
+  }
+
+  // Consistency: active on most days since day one.
+  const span = daysInclusive(a.firstActivityDate, a.lastActivityDate);
+  if (span >= 60 && a.totalActiveDays / span >= 0.8)
+    out.push({ id: "consistent80", label: "Active 80% of days" });
+
+  // Cache efficiency — only local-log sources report cache reads.
+  const cacheRead = (cc?.cacheReadTokens ?? 0) + (cx?.cacheReadTokens ?? 0);
+  const cacheBase = (cc?.totalTokens ?? 0) + (cx?.totalTokens ?? 0);
+  if (cacheBase >= 100_000_000 && cacheRead / cacheBase >= 0.9)
+    out.push({ id: "cache90", label: "90% cache-efficient" });
+
+  const sessions = (cc?.sessionCount ?? 0) + (cx?.sessionCount ?? 0);
+  if (sessions >= 10_000)
+    out.push({ id: "sessions10k", label: "10k sessions" });
+  else if (sessions >= 1_000)
+    out.push({ id: "sessions1k", label: "1,000 sessions" });
+
+  if (a.distinctModels.length >= 20)
+    out.push({ id: "models20", label: "20+ models" });
+  else if (a.distinctModels.length >= 10)
     out.push({ id: "models10", label: "10+ models" });
-  if (sources >= 2) out.push({ id: "multi", label: "Multi-tool" });
-  if (a.totalCostUsd != null && a.totalCostUsd >= 500)
+
+  // Builds with models from more than one provider.
+  const hasClaude = a.distinctModels.some((m) => /claude/i.test(m));
+  const hasOpenAI = a.distinctModels.some((m) =>
+    /^(gpt|o\d|codex|chatgpt)/i.test(m)
+  );
+  if (hasClaude && hasOpenAI)
+    out.push({ id: "xprovider", label: "Cross-provider" });
+
+  if (sources >= 4) out.push({ id: "sources4", label: "All 4 sources" });
+  else if (sources >= 3) out.push({ id: "sources3", label: "3 tools" });
+  else if (sources >= 2) out.push({ id: "multi", label: "Multi-tool" });
+
+  if (cc && cc.projectCount >= 25)
+    out.push({ id: "projects25", label: "25+ projects" });
+  else if (cc && cc.projectCount >= 10)
+    out.push({ id: "projects10", label: "10+ projects" });
+
+  if (cx && cx.reasoningTokens >= 100_000_000)
+    out.push({ id: "reasoning100m", label: "100M reasoning tokens" });
+
+  if (a.totalCostUsd != null && a.totalCostUsd >= 5_000)
+    out.push({ id: "spend5k", label: "$5k+ compute" });
+  else if (a.totalCostUsd != null && a.totalCostUsd >= 500)
     out.push({ id: "spend500", label: "$500+ compute" });
-  return out.slice(0, 4);
+
+  return out;
 }
 
 export function shareLine(payload: SnapshotPayload, url: string): string {

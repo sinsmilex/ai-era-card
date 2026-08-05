@@ -93,6 +93,76 @@ describe("eraRank", () => {
     expect(line).toContain("https://example.com/s/test");
   });
 
+  it("orders badges rarest-first and no longer caps at four", () => {
+    const p = payload(1_200_000_000, {
+      totalActiveDays: 220,
+      longestStreakDays: 100,
+      firstActivityDate: "2023-05-01",
+      totalCostUsd: 6000,
+    });
+    const m = eraMilestones(p);
+    expect(m.length).toBeGreaterThan(4);
+    expect(m[0].id).toBe("1b"); // token tier leads
+    expect(m.map((x) => x.id)).toContain("era3y");
+    expect(m.map((x) => x.id)).toContain("streak100");
+    expect(m.map((x) => x.id)).toContain("spend5k");
+  });
+
+  it("awards tenure from firstActivityDate vs generatedAt, deterministically", () => {
+    const m = eraMilestones(
+      payload(50_000_000, { firstActivityDate: "2024-08-01" })
+    );
+    // generatedAt is 2026-07-18 — two weeks short of 2 full years.
+    expect(m.some((x) => x.id === "era1y")).toBe(true);
+    expect(m.some((x) => x.id === "era2y")).toBe(false);
+  });
+
+  it("awards daily density only with a 10-day baseline", () => {
+    const dense = eraMilestones(payload(1_000_000_000, { totalActiveDays: 40 }));
+    expect(dense.some((x) => x.id === "daily20m")).toBe(true);
+    const oneWeek = eraMilestones(payload(1_000_000_000, { totalActiveDays: 5 }));
+    expect(oneWeek.some((x) => x.id.startsWith("daily"))).toBe(false);
+  });
+
+  it("awards consistency for 80%+ active days over 60+ day spans", () => {
+    // 2026-01-01 → 2026-07-18 is a 199-day span; 160 active days ≈ 80.4%.
+    const m = eraMilestones(payload(50_000_000, { totalActiveDays: 160 }));
+    expect(m.some((x) => x.id === "consistent80")).toBe(true);
+    const sparse = eraMilestones(payload(50_000_000, { totalActiveDays: 50 }));
+    expect(sparse.some((x) => x.id === "consistent80")).toBe(false);
+  });
+
+  it("awards cache efficiency from local-log sources", () => {
+    const p = payload(200_000_000);
+    p.sources.claudeCode!.totalTokens = 200_000_000;
+    p.sources.claudeCode!.cacheReadTokens = 190_000_000;
+    expect(eraMilestones(p).some((x) => x.id === "cache90")).toBe(true);
+  });
+
+  it("awards session volume across claudeCode and codex", () => {
+    const p = payload(50_000_000);
+    p.sources.claudeCode!.sessionCount = 1_500;
+    expect(eraMilestones(p).some((x) => x.id === "sessions1k")).toBe(true);
+  });
+
+  it("awards cross-provider for mixed model families", () => {
+    const m = eraMilestones(
+      payload(50_000_000, { distinctModels: ["claude-sonnet-5", "gpt-4.1"] })
+    );
+    expect(m.some((x) => x.id === "xprovider")).toBe(true);
+    const single = eraMilestones(
+      payload(50_000_000, { distinctModels: ["claude-sonnet-5"] })
+    );
+    expect(single.some((x) => x.id === "xprovider")).toBe(false);
+  });
+
+  it("keeps a 10M entry tier and only the highest token tier", () => {
+    const m = eraMilestones(payload(15_000_000));
+    expect(m.some((x) => x.id === "10m")).toBe(true);
+    const big = eraMilestones(payload(1_200_000_000));
+    expect(big.filter((x) => ["10m", "100m", "1b"].includes(x.id))).toHaveLength(1);
+  });
+
   it("does not invent compute in a LinkedIn summary", () => {
     const line = linkedInShareLine(
       payload(1_500_000_000, { totalCostUsd: null }),

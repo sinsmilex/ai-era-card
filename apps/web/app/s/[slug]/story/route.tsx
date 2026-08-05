@@ -35,7 +35,8 @@ export async function GET(
   const a = p.aggregate;
   const palette = eraPalette(p);
   const rank = eraRank(p);
-  const milestones = eraMilestones(p);
+  // Fixed story layout — cap at the 4 rarest badges.
+  const milestones = eraMilestones(p).slice(0, 4);
   const blocks = buildBuilding(p);
   const bounds = buildingBounds(blocks);
   const host = appUrl().replace(/^https?:\/\//, "");
