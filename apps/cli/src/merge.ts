@@ -14,8 +14,10 @@ export function buildPayload(opts: {
   cursor: CursorResult | null;
   codex: CodexResult | null;
   handle: string | null;
+  /** Slug of the author's previous card (from local baseline state). */
+  previousSlug?: string | null;
 }): SnapshotPayload {
-  const { claudeCode, openrouter, cursor, codex, handle } = opts;
+  const { claudeCode, openrouter, cursor, codex, handle, previousSlug } = opts;
 
   const allDates = new Set<string>();
   for (const r of [claudeCode, openrouter, cursor, codex]) {
@@ -90,6 +92,6 @@ export function buildPayload(opts: {
       firstActivityDate: first ?? today,
       lastActivityDate: last ?? today,
     },
-    display: { handle },
+    display: { handle, ...(previousSlug ? { previousSlug } : {}) },
   };
 }

@@ -20,7 +20,14 @@ import {
 } from "./collectors/cursorApi.js";
 import { collectCodex, codexSessionsRoots, type CodexResult } from "./collectors/codex.js";
 import { buildPayload, CLI_VERSION } from "./merge.js";
-import { renderTextCard } from "./textCard.js";
+import { renderTextCard, rankTitleFor } from "./textCard.js";
+import {
+  baselineFromPayload,
+  baselinePath,
+  compareBaseline,
+  readBaseline,
+  writeBaseline,
+} from "./state.js";
 
 const DEFAULT_ENDPOINT = "https://ai-era-card.vercel.app";
 
@@ -39,6 +46,8 @@ const { values: args } = parseArgs({
     "no-cursor": { type: "boolean", default: false },
     "no-codex": { type: "boolean", default: false },
     handle: { type: "string" },
+    "no-baseline": { type: "boolean", default: false },
+    "no-link": { type: "boolean", default: false },
     endpoint: { type: "string" },
     open: { type: "boolean", default: false },
     help: { type: "boolean", default: false },
@@ -80,6 +89,8 @@ Options:
   --no-openrouter        skip OpenRouter (legacy; it is skipped by default)
   --no-cursor            skip Cursor
   --handle <name>        display name on the card (unverified)
+  --no-baseline          don't save a local baseline for "since last card" deltas
+  --no-link              don't link this card to your previous one
   --endpoint <url>       backend base URL (default: ${DEFAULT_ENDPOINT})
   --open                 open the card URL in your browser`);
     return;
@@ -257,6 +268,9 @@ Options:
     if (!p.isCancel(answer) && answer) handle = answer.trim().slice(0, 40);
   }
 
+  // --- Baseline: local-only state from the previous run ---
+  const baseline = await readBaseline();
+
   // --- Build + validate locally against the shared schema ---
   const payload: SnapshotPayload = buildPayload({
     claudeCode,
@@ -264,10 +278,31 @@ Options:
     cursor,
     codex,
     handle,
+    previousSlug: !args["no-link"] ? (baseline?.slug ?? null) : null,
   });
   const parsed = snapshotPayloadSchema.safeParse(payload);
   if (!parsed.success) {
     bail(`Internal error: payload failed schema validation:\n${parsed.error.message}`);
+  }
+
+  // --- Delta vs the previous card (honest only when comparable) ---
+  if (baseline) {
+    const delta = compareBaseline(baseline, payload, rankTitleFor);
+    if (delta.comparable) {
+      const sign = delta.tokensDelta >= 0 ? "+" : "-";
+      const lines = [
+        `Since your last card (${delta.sinceDate}): ` +
+          `${sign}${fmtTokens(Math.abs(delta.tokensDelta))} tokens, ` +
+          `${delta.activeDaysDelta >= 0 ? "+" : ""}${delta.activeDaysDelta} active days`,
+      ];
+      if (delta.crossedRank) lines.push(`You crossed into ${delta.crossedRank}.`);
+      p.log.info(lines.join("\n"));
+    } else if (delta.reason === "sources-changed") {
+      p.log.info(
+        `Previous card found (${delta.sinceDate}), but the source set changed ` +
+          `(${delta.previousSources.join("+") || "none"} → ${delta.currentSources.join("+")}) — no delta shown.`
+      );
+    }
   }
 
   // --- Preview: the exact bytes that would leave this machine ---
@@ -316,11 +351,24 @@ Options:
     const body = await res.text().catch(() => "");
     bail(`Server returned ${res.status}: ${body.slice(0, 300)}`);
   }
-  const { url } = (await res.json()) as { slug: string; url: string };
+  const { slug, url } = (await res.json()) as { slug: string; url: string };
   s.stop("Card created");
   console.log(renderTextCard(payload));
   p.log.success(`Your permanent card URL:\n  ${url}`);
   p.log.info(`Share caption:\n${buildShareCaption(payload, url, fmtTokens)}`);
+
+  if (!args["no-baseline"]) {
+    try {
+      await writeBaseline(baselineFromPayload(payload, slug ?? null, url ?? null));
+      p.log.info(
+        `Baseline saved to ${baselinePath()} (aggregate numbers only) —\n` +
+          "your next run will show the delta. Delete the file anytime;\n" +
+          "--no-baseline skips saving, --no-link skips linking cards."
+      );
+    } catch {
+      // A failed local write must never fail the created card.
+    }
+  }
 
   if (args.open) {
     const { exec } = await import("node:child_process");

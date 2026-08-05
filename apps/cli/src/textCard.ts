@@ -33,6 +33,13 @@ function mulberry32(seed: number) {
   };
 }
 
+/** Tier label for a token total, e.g. "TIER4 · TOWER" — used by the card
+ * body and by the baseline delta to announce a crossed tier. */
+export function rankTitleFor(totalTokens: number): string {
+  const rank = RANKS.findLast((c) => totalTokens >= c.minTokens)!;
+  return `TIER${rank.level} · ${rank.name.toUpperCase()}`;
+}
+
 // A terminal-sized version of the web card's deterministic landmark.
 export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const width = 10;

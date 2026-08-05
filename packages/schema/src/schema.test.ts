@@ -106,6 +106,29 @@ describe("snapshotPayloadSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts a well-formed previousSlug and omitting it", () => {
+    expect(
+      snapshotPayloadSchema.safeParse(
+        validPayload({ display: { handle: null, previousSlug: "Ab3_x-9QzW" } })
+      ).success
+    ).toBe(true);
+    expect(
+      snapshotPayloadSchema.safeParse(
+        validPayload({ display: { handle: null } })
+      ).success
+    ).toBe(true);
+  });
+
+  it("rejects previousSlug that is not a bare slug", () => {
+    for (const bad of ["../etc", "a b c d e f", "x", "s".repeat(25), ""]) {
+      expect(
+        snapshotPayloadSchema.safeParse(
+          validPayload({ display: { handle: null, previousSlug: bad } })
+        ).success
+      ).toBe(false);
+    }
+  });
+
   it("rejects dates before the minimum", () => {
     const result = snapshotPayloadSchema.safeParse(
       validPayload({ generatedAt: "2020-01-01" })

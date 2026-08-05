@@ -118,6 +118,14 @@ export const snapshotPayloadSchema = z
         .max(LIMITS.maxHandleLength)
         .regex(/^[\p{L}\p{N} _.-]*$/u, "handle contains invalid characters")
         .nullable(),
+      // Self-linked slug of the author's own previous card. Links one
+      // public aggregate snapshot to another — carries no new personal
+      // data. Like the handle it is self-reported and unverified; the web
+      // renders it only if the slug resolves to a stored card.
+      previousSlug: z
+        .string()
+        .regex(/^[A-Za-z0-9_-]{6,24}$/, "invalid slug")
+        .optional(),
     }),
   })
   .strict();
