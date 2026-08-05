@@ -15,8 +15,8 @@ describe("scaleEquivalents", () => {
         text: "≈ 0.1 kWh of AI-serving electricity",
       },
       {
-        id: "h100-gpu-hours",
-        text: "≈ 1.9 H100 GPU-hours at 70B-model speed",
+        id: "ev-driving",
+        text: "≈ 0.3 km driven in an EV",
       },
     ]);
   });
@@ -32,7 +32,7 @@ describe("scaleEquivalents", () => {
       "≈ 1.4B English words",
       "≈ 228 liters of AI-serving water",
       "≈ 190 kWh of AI-serving electricity",
-      "≈ 6,209 H100 GPU-hours at 70B-model speed",
+      "≈ 1,056 km driven in an EV",
     ]);
   });
 });
