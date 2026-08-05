@@ -11,8 +11,8 @@ https://github.com/sinsmilex/ai-era-card
   privacy contract: it cannot represent prompts, code, paths, or project names.
 - `apps/cli` — `npx aieracard`. Collects Claude Code + OpenAI Codex (local
   JSONL), Cursor (all-time via your own cursor.com session, CSV fallback),
-  optional OpenRouter (API key); previews the exact JSON, uploads on
-  confirmation, prints a permanent card URL.
+  optional OpenRouter (API key, enabled with `--openrouter`); previews the
+  exact JSON, uploads on confirmation, prints a permanent card URL.
 - `apps/web` — Next.js app: `POST /api/snapshots`, card page `/s/[slug]`,
   dynamic OG image (the share unfurl), `/privacy`.
 

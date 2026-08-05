@@ -29,6 +29,7 @@ const { values: args } = parseArgs({
     force: { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false },
     "json-out": { type: "string" },
+    openrouter: { type: "boolean", default: false },
     "openrouter-key": { type: "string" },
     "cursor-csv": { type: "string" },
     "cursor-cookie": { type: "string" },
@@ -69,12 +70,13 @@ Options:
   --json-out <file>      also write the payload to a local file
   --yes                  skip optional source prompts
   --force                skip the upload confirmation (implies --yes)
-  --openrouter-key <k>   OpenRouter API key (or OPENROUTER_API_KEY env)
+  --openrouter           collect OpenRouter usage (prompts for a key if needed)
+  --openrouter-key <k>   OpenRouter API key (requires --openrouter)
   --cursor-cookie <t>    Cursor web session token (auto-detected if omitted)
   --cursor-csv <path>    usage CSV export (fallback if the API path fails)
   --no-claude-code       skip Claude Code logs
   --no-codex             skip OpenAI Codex CLI logs
-  --no-openrouter        skip OpenRouter
+  --no-openrouter        skip OpenRouter (legacy; it is skipped by default)
   --no-cursor            skip Cursor
   --handle <name>        display name on the card (unverified)
   --endpoint <url>       backend base URL (default: ${DEFAULT_ENDPOINT})
@@ -124,7 +126,7 @@ Options:
 
   // --- OpenRouter ---
   let openrouter: OpenRouterResult | null = null;
-  if (!args["no-openrouter"]) {
+  if (args.openrouter && !args["no-openrouter"]) {
     let key = args["openrouter-key"] ?? process.env.OPENROUTER_API_KEY ?? "";
     if (!key && interactive) {
       const answer = await p.password({
@@ -240,7 +242,7 @@ Options:
 
   if (!claudeCode && !openrouter && !cursor && !codex) {
     bail(
-      "No usage sources found or supplied. Nothing to build a card from.\nTry Claude Code, Codex CLI, --openrouter-key, or --cursor-csv."
+      "No usage sources found or supplied. Nothing to build a card from.\nTry Claude Code, Codex CLI, --openrouter, or --cursor-csv."
     );
   }
 

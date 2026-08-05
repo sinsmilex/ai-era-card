@@ -12,7 +12,8 @@ The CLI collects usage **locally** from:
 - **Codex** — local JSONL under `~/.codex/sessions` (override with `CODEX_HOME`)
 - **Cursor** — all-time usage via your own cursor.com session (token resolved
   locally, sent only to cursor.com); CSV export as fallback
-- **OpenRouter** — optional management API key (`/credits` + `/activity`).
+- **OpenRouter** — optional management API key (`/credits` + `/activity`),
+  collected only when explicitly enabled with `--openrouter`.
   Tokens are last 30 days; all-time spend stays on the source object and is
   **not** rolled into the card's aggregate "compute spent"
 
@@ -31,7 +32,8 @@ that unfurls into a stats card when shared.
 --dry-run              build and print the payload, upload nothing
 --json-out <file>      also write the payload to a local file
 --yes / --force        skip prompts / skip upload confirmation
---openrouter-key <k>   OpenRouter API key (or OPENROUTER_API_KEY env)
+--openrouter           collect OpenRouter usage; prompts for a key if needed
+--openrouter-key <k>   OpenRouter API key (or OPENROUTER_API_KEY env; requires --openrouter)
 --cursor-cookie <t>    Cursor web session token (auto-detected if omitted)
 --cursor-csv <path>    usage CSV export (fallback if the API path fails)
 --no-claude-code / --no-codex / --no-openrouter / --no-cursor
