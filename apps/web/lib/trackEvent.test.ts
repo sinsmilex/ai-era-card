@@ -2,8 +2,13 @@ import { describe, expect, it } from "vitest";
 import { parseTrackEvent, EXAMPLE_SLUG } from "./trackEvent";
 
 describe("parseTrackEvent", () => {
-  it("accepts each of the three client kinds without a slug", () => {
-    for (const kind of ["card_cta", "command_copy", "preview_click"] as const) {
+  it("accepts each client kind without a slug", () => {
+    for (const kind of [
+      "card_cta",
+      "command_copy",
+      "preview_click",
+      "caption_copy",
+    ] as const) {
       expect(parseTrackEvent({ kind })).toEqual({ kind, slug: null });
     }
   });
@@ -22,13 +27,17 @@ describe("parseTrackEvent", () => {
     });
   });
 
-  it("drops a slug supplied on card_cta / command_copy", () => {
+  it("drops a slug supplied on non-preview events", () => {
     expect(parseTrackEvent({ kind: "card_cta", slug: EXAMPLE_SLUG })).toEqual({
       kind: "card_cta",
       slug: null,
     });
     expect(parseTrackEvent({ kind: "command_copy", slug: "x" })).toEqual({
       kind: "command_copy",
+      slug: null,
+    });
+    expect(parseTrackEvent({ kind: "caption_copy", slug: "x" })).toEqual({
+      kind: "caption_copy",
       slug: null,
     });
   });

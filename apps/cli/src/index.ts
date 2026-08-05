@@ -2,6 +2,7 @@ import { parseArgs } from "node:util";
 import { writeFile } from "node:fs/promises";
 import * as p from "@clack/prompts";
 import { snapshotPayloadSchema } from "@aieracard/schema";
+import { buildShareCaption } from "@aieracard/schema/src/shareCaption";
 import {
   collectClaudeCode,
   claudeCodeProjectsDir,
@@ -319,6 +320,7 @@ Options:
   s.stop("Card created");
   console.log(renderTextCard(payload));
   p.log.success(`Your permanent card URL:\n  ${url}`);
+  p.log.info(`Share caption:\n${buildShareCaption(payload, url, fmtTokens)}`);
 
   if (args.open) {
     const { exec } = await import("node:child_process");

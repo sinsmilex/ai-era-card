@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { ClientEventKind } from "@/lib/db";
+import { beacon } from "@/lib/beacon";
 
 export function CopyTextButton({
   text,
@@ -8,12 +10,14 @@ export function CopyTextButton({
   accent,
   panel,
   ink,
+  eventKind,
 }: {
   text: string;
   label: string;
   accent: string;
   panel: string;
   ink: string;
+  eventKind?: ClientEventKind;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -21,6 +25,7 @@ export function CopyTextButton({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      if (eventKind) beacon(eventKind);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       // Clipboard access may be unavailable without permissions.

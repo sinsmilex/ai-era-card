@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { buildShareCaption } from "@aieracard/schema/src/shareCaption";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
 import { appUrl, fmtTokens } from "@/lib/format";
-import { eraPalette, eraRank, linkedInShareLine, shareLine } from "@/lib/eraRank";
+import { eraPalette, eraRank, linkedInShareLine } from "@/lib/eraRank";
 import { StatsCard } from "@/components/StatsCard";
 import { sourceLabels } from "@/lib/sourceStats";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
@@ -43,7 +44,7 @@ export default async function CardPage({ params }: Props) {
 
   const url = `${appUrl()}/s/${slug}`;
   const palette = eraPalette(rec.payload);
-  const tweet = shareLine(rec.payload, url);
+  const caption = buildShareCaption(rec.payload, url, fmtTokens);
   const linkedInPost = linkedInShareLine(rec.payload, url);
   const badgeMarkdown = `[![My AI era](${url}/card.svg)](${url})`;
 
@@ -107,8 +108,16 @@ export default async function CardPage({ params }: Props) {
           panel={palette.panel}
           ink={palette.ink}
         />
+        <CopyTextButton
+          text={caption}
+          label="Copy caption"
+          accent={palette.accent}
+          panel={palette.panel}
+          ink={palette.ink}
+          eventKind="caption_copy"
+        />
         <a
-          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`}
+          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caption)}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{

@@ -1,6 +1,11 @@
 import type { ClientEventKind } from "./db";
 
-const KINDS: ClientEventKind[] = ["card_cta", "command_copy", "preview_click"];
+const KINDS: ClientEventKind[] = [
+  "card_cta",
+  "command_copy",
+  "preview_click",
+  "caption_copy",
+];
 export const EXAMPLE_SLUG = "mmi5GrqvJt";
 
 // Validation contract (pure, unit-tested):

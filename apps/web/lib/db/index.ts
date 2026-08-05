@@ -11,7 +11,11 @@ export interface SnapshotRecord {
 // Server renders carry a slug (CardSurface); client interactions may not
 // (ClientEventKind) — slug is nullable.
 export type CardSurface = "page" | "og" | "badge" | "story";
-export type ClientEventKind = "card_cta" | "command_copy" | "preview_click";
+export type ClientEventKind =
+  | "card_cta"
+  | "command_copy"
+  | "preview_click"
+  | "caption_copy";
 export type EventKind = CardSurface | ClientEventKind;
 
 export interface CardEvent {
