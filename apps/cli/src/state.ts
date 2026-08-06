@@ -55,7 +55,8 @@ export async function readBaseline(): Promise<BaselineState | null> {
       typeof data.schemaVersion !== "number" ||
       typeof data.savedAt !== "string" ||
       !Array.isArray(data.sources) ||
-      typeof data.aggregate?.totalTokens !== "number"
+      typeof data.aggregate?.totalTokens !== "number" ||
+      typeof data.aggregate?.totalActiveDays !== "number"
     ) {
       return null; // corrupt or from an incompatible future version
     }
@@ -120,6 +121,11 @@ export function compareBaseline(
     sinceDate: baseline.savedAt,
     tokensDelta: after.totalTokens - before.totalTokens,
     activeDaysDelta: after.totalActiveDays - before.totalActiveDays,
-    crossedRank: rankAfter !== rankBefore ? rankAfter : null,
+    // "Crossed into" only on the way up — shrunken logs can lower the tier,
+    // and a demotion must not be announced as an achievement.
+    crossedRank:
+      after.totalTokens > before.totalTokens && rankAfter !== rankBefore
+        ? rankAfter
+        : null,
   };
 }

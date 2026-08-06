@@ -36,9 +36,20 @@ that unfurls into a stats card when shared.
 --openrouter-key <k>   OpenRouter API key (or OPENROUTER_API_KEY env; requires --openrouter)
 --cursor-cookie <t>    Cursor web session token (auto-detected if omitted)
 --cursor-csv <path>    usage CSV export (fallback if the API path fails)
---no-claude-code / --no-codex / --no-openrouter / --no-cursor
+--no-claude-code / --no-codex / --no-cursor
+--no-openrouter        legacy no-op (OpenRouter is already opt-in)
 --handle <name>        display name on the card (unverified)
+--no-baseline          don't save the local baseline file (see below)
 --open                 open the card URL in your browser
 ```
+
+## Local baseline (deltas)
+
+After a successful upload the CLI saves a small local file,
+`~/.aieracard/state.json`, containing only the same aggregate numbers that
+are already public on your card (plus the date, schema version, and which
+sources were enabled). On your next run it uses that file to print
+"+240M tokens since your last card". The file never leaves your machine;
+delete it anytime, or pass `--no-baseline` to skip writing it.
 
 Stats are self-reported, like any year-in-review.

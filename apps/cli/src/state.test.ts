@@ -117,6 +117,8 @@ describe("compareBaseline", () => {
     const base = baselineFromPayload(payload(340_000_000));
     const delta = compareBaseline(base, payload(100_000_000), rankTitleFor);
     expect(delta.comparable && delta.tokensDelta).toBe(-240_000_000);
+    // A tier drop must never be announced as "You crossed into …".
+    expect(delta.comparable && delta.crossedRank).toBeNull();
   });
 });
 

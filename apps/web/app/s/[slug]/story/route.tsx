@@ -159,7 +159,7 @@ export async function GET(
             marginTop: 14,
           }}
         >
-          {primaryEquivalent?.text}
+          {primaryEquivalent?.text ?? `${a.totalActiveDays} active days in the AI era`}
         </div>
 
         <div

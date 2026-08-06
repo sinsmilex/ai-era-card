@@ -135,3 +135,12 @@ export {
   type TerritoryTile,
   type TerritoryTileRole,
 } from "./territory";
+
+export {
+  ERA_RANKS,
+  eraRankBand,
+  eraRankTitle,
+  type EraRankBand,
+} from "./ranks";
+
+export { buildShareCaption } from "./shareCaption";

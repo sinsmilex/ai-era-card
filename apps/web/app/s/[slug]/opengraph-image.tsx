@@ -183,8 +183,9 @@ export default async function OgImage({
             marginBottom: 32,
           }}
         >
-          {primaryEquivalent?.text}
-          {milestones[0] ? ` · ${milestones[0].label}` : ""}
+          {[primaryEquivalent?.text, milestones[0]?.label]
+            .filter(Boolean)
+            .join(" · ")}
         </div>
 
         <div style={{ display: "flex", gap: 16 }}>

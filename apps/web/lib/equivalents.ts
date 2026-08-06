@@ -27,26 +27,21 @@ const REFERENCE_PROMPT_WATER_ML = 0.12;
 const REFERENCE_PROMPT_ENERGY_WH = 0.1;
 const AVERAGE_HOME_KWH_PER_DAY = 29.6;
 
-function englishWords(tokens: number): number {
-  return tokens * ENGLISH_WORDS_PER_TOKEN;
-}
-
-function averageHomePowerText(days: number): string {
-  if (days < 0.1) return "less than 0.1 days of power for an average home";
-  return `${fmtQuantity(days)} days of power for an average home`;
-}
+// A comparison below this value would render as a false "≈ 0 …" (fmtQuantity's
+// one decimal bottoms out at 0.1), so we drop it from the rotation instead.
+const MIN_LEGIBLE_QUANTITY = 0.1;
 
 export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
   if (!Number.isFinite(tokens) || tokens <= 0) return [];
 
-  const words = englishWords(tokens);
+  const wordCount = Math.round(tokens * ENGLISH_WORDS_PER_TOKEN);
   const warAndPeaceCopies = warAndPeaceEquivalent(tokens);
   const referencePrompts = tokens / REPORTED_TOKENS_PER_REFERENCE_PROMPT;
   const waterLiters = (referencePrompts * REFERENCE_PROMPT_WATER_ML) / 1_000;
   const energyKwh = (referencePrompts * REFERENCE_PROMPT_ENERGY_WH) / 1_000;
   const averageHomePowerDays = energyKwh / AVERAGE_HOME_KWH_PER_DAY;
 
-  return [
+  const out: ScaleEquivalent[] = [
     {
       id: "war-and-peace",
       text: `≈ ${fmtQuantity(warAndPeaceCopies)} ${
@@ -55,19 +50,23 @@ export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
     },
     {
       id: "english-words",
-      text: `≈ ${fmtTokens(words)} English words`,
-    },
-    {
-      id: "ai-serving-water",
-      text: `≈ ${fmtQuantity(waterLiters)} liters of AI-serving water`,
-    },
-    {
-      id: "ai-serving-energy",
-      text: `≈ ${fmtQuantity(energyKwh)} kWh of AI-serving electricity`,
-    },
-    {
-      id: "average-home-power",
-      text: `≈ ${averageHomePowerText(averageHomePowerDays)}`,
+      text: `≈ ${fmtTokens(wordCount)} English ${wordCount === 1 ? "word" : "words"}`,
     },
   ];
+  if (waterLiters >= MIN_LEGIBLE_QUANTITY)
+    out.push({
+      id: "ai-serving-water",
+      text: `≈ ${fmtQuantity(waterLiters)} liters of AI-serving water`,
+    });
+  if (energyKwh >= MIN_LEGIBLE_QUANTITY)
+    out.push({
+      id: "ai-serving-energy",
+      text: `≈ ${fmtQuantity(energyKwh)} kWh of AI-serving electricity`,
+    });
+  if (averageHomePowerDays >= MIN_LEGIBLE_QUANTITY)
+    out.push({
+      id: "average-home-power",
+      text: `≈ ${fmtQuantity(averageHomePowerDays)} days of power for an average home`,
+    });
+  return out;
 }

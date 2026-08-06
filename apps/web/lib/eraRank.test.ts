@@ -169,6 +169,13 @@ describe("eraRank", () => {
       payload(50_000_000, { distinctModels: ["claude-sonnet-5", "gpt-4.1"] })
     );
     expect(m.some((x) => x.id === "xprovider")).toBe(true);
+    // OpenRouter reports provider-prefixed ids — they must count too.
+    const prefixed = eraMilestones(
+      payload(50_000_000, {
+        distinctModels: ["anthropic/claude-3.5-sonnet", "openai/gpt-4.1"],
+      })
+    );
+    expect(prefixed.some((x) => x.id === "xprovider")).toBe(true);
     const single = eraMilestones(
       payload(50_000_000, { distinctModels: ["claude-sonnet-5"] })
     );

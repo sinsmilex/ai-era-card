@@ -67,13 +67,22 @@ pnpm monorepo:
     request body causes a 500; omit it. CSV export
     (`src/collectors/cursorCsv.ts`) is the documented fallback, used
     automatically if the API path throws.
-  - **OpenRouter** (optional): official REST API, `/credits` (all-time
-    spend) + `/activity` (30-day windowed tokens). All-time OR spend is
-    **not** rolled into aggregate card cost. Unverified against a live
-    key in this environment.
+  - **OpenRouter** (opt-in since 0.1.10: requires `--openrouter`; a key
+    alone is not enough, and the CLI warns if a key is supplied without
+    the flag): official REST API, `/credits` (all-time spend) +
+    `/activity` (30-day windowed tokens). All-time OR spend is **not**
+    rolled into aggregate card cost. Unverified against a live key in
+    this environment.
   - The CLI always shows the exact JSON before uploading and requires
     confirmation (`--dry-run` skips upload entirely; `--force` skips the
     confirmation prompt for scripting).
+  - **Local baseline**: after a successful upload the CLI writes
+    `~/.aieracard/state.json` (aggregate numbers, date, schema version,
+    source set — nothing that isn't already public on the card) so the
+    next run can print "+X tokens since your last card". A delta is shown
+    only when the source set and schema version match exactly; a tier
+    announcement only fires on the way up. `--no-baseline` opts out;
+    `AIERACARD_HOME` overrides the directory.
 - `apps/web` — Next.js. `POST /api/snapshots` validates + rate-limits +
   inserts; `/s/[slug]` renders the card; `opengraph-image.tsx` is a second,
   independent Satori-based render of the same data (Satori only supports a
@@ -120,7 +129,7 @@ your own memory of a previous session.
 - **OpenRouter collector still needs a live-key dry-run.** Hardened against
   the documented `/credits` + `/activity` shapes (no silent `.catch`,
   all-time spend kept off aggregate totals, models deduped). Still run
-  `npx aieracard --dry-run` with a real management `OPENROUTER_API_KEY`
+  `npx aieracard --openrouter --dry-run` with a real management `OPENROUTER_API_KEY`
   once — Cursor taught us docs ≠ production.
 - **No CI.** Nothing runs typecheck/build/tests on push or PR — a broken
   commit to `main` auto-deploys straight to production. Cheapest fix: a

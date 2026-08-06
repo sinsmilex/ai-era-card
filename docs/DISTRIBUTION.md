@@ -23,7 +23,7 @@ Reddit и X находится там.
   нет. Напечатанный upload JSON содержит только агрегаты.
 - ✅ Свежая полная founder-карточка создана опубликованным
   `aieracard@0.1.4`: https://ai-era-card.vercel.app/s/WvGKItZ0gW
-  (Claude Code + Cursor; 1.6B tokens, ранг `L4 · TOWER`). Страница и
+  (Claude Code + Cursor; 1.6B tokens, ранг `TIER4 · TOWER`). Страница и
   `/opengraph-image` отвечают с `200`.
 - [x] Отдельно проверить Cursor CSV fallback с настоящим экспортом CSV:
   опубликованный `aieracard@0.1.4` с `--cursor-csv` обработал CSV напрямую,
@@ -51,7 +51,7 @@ Reddit и X находится там.
 - [x] Проверить отдельный Cursor CSV fallback с настоящим экспортом CSV.
 - [x] Создать свежую полную founder-карточку:
   https://ai-era-card.vercel.app/s/WvGKItZ0gW (Claude Code + Cursor).
-  Page и OG image проверены с `200`; metadata: `L4 · TOWER · 1.6B tokens`.
+  Page и OG image проверены с `200`; metadata: `TIER4 · TOWER · 1.6B tokens` (создана до переименования уровней с `L4` на `TIER4`).
 - [ ] Открыть свежую founder-карточку в инкогнито и вручную проверить
   мобильный вид и ссылку на GitHub.
 - [ ] Открыть landing page как новый пользователь: за 30 секунд должно быть

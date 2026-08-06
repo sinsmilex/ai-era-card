@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { buildShareCaption } from "@aieracard/schema/src/shareCaption";
+import { buildShareCaption } from "@aieracard/schema";
 import { getStore } from "@/lib/db";
 import { track } from "@/lib/track";
 import { appUrl, fmtTokens } from "@/lib/format";

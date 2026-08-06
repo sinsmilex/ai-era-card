@@ -52,7 +52,7 @@ describe("buildShareCaption", () => {
     expect(
       buildShareCaption(payload("sinsmile"), "https://example.com/s/card", (n) => `${n / 1e9}B`)
     ).toBe(
-      "sinsmile's AI coding card: TIER4 · Tower · 1.9B tokens · Cursor + Claude Code\nhttps://example.com/s/card"
+      "sinsmile's AI coding card: TIER4 · TOWER · 1.9B tokens · Cursor + Claude Code\nhttps://example.com/s/card"
     );
   });
 

@@ -1,8 +1,11 @@
 import { parseArgs } from "node:util";
 import { writeFile } from "node:fs/promises";
 import * as p from "@clack/prompts";
-import { snapshotPayloadSchema } from "@aieracard/schema";
-import { buildShareCaption } from "@aieracard/schema/src/shareCaption";
+import {
+  buildShareCaption,
+  snapshotPayloadSchema,
+  type SnapshotPayload,
+} from "@aieracard/schema";
 import {
   collectClaudeCode,
   claudeCodeProjectsDir,
@@ -136,6 +139,17 @@ Options:
 
   // --- OpenRouter ---
   let openrouter: OpenRouterResult | null = null;
+  if (
+    !args.openrouter &&
+    (args["openrouter-key"] || process.env.OPENROUTER_API_KEY)
+  ) {
+    // Pre-0.1.10 a key alone was enough; collection is opt-in now, and
+    // silently dropping a source the user explicitly configured would put
+    // an incomplete card on a permanent URL.
+    p.log.warn(
+      "An OpenRouter key was provided but --openrouter was not — OpenRouter is skipped.\nAdd --openrouter to include it on the card."
+    );
+  }
   if (args.openrouter && !args["no-openrouter"]) {
     let key = args["openrouter-key"] ?? process.env.OPENROUTER_API_KEY ?? "";
     if (!key && interactive) {

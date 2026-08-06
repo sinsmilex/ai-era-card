@@ -1,4 +1,4 @@
-import type { SnapshotPayload } from "@aieracard/schema";
+import { ERA_RANKS, type SnapshotPayload } from "@aieracard/schema";
 import { fmtTokens, fmtUsd } from "./format";
 
 // Status bands earned from real aggregates — not XP, quests, or daily login.
@@ -32,18 +32,9 @@ export interface EraPalette {
 }
 
 // All-time context tokens, including cache tokens when a source reports them.
-// These intentionally broad, roughly logarithmic bands leave room for agent
-// workflows to grow without turning today's heavy users into the final tier.
-const RANKS: Array<{ level: number; name: string; minTokens: number }> = [
-  { level: 1, name: "Foundation", minTokens: 0 },
-  { level: 2, name: "Studio", minTokens: 25_000_000 },
-  { level: 3, name: "Foundry", minTokens: 150_000_000 },
-  { level: 4, name: "Tower", minTokens: 750_000_000 },
-  { level: 5, name: "Citadel", minTokens: 2_500_000_000 },
-  { level: 6, name: "Arcology", minTokens: 7_500_000_000 },
-  { level: 7, name: "Landmark", minTokens: 20_000_000_000 },
-  { level: 8, name: "Apex", minTokens: 100_000_000_000 },
-];
+// The band table itself lives in @aieracard/schema (ERA_RANKS) — the one
+// canonical ladder shared with the CLI card and the share caption.
+const RANKS = ERA_RANKS;
 
 const PALETTES: EraPalette[] = [
   {
@@ -153,9 +144,11 @@ function daysInclusive(from: string, to: string): number {
 }
 
 // Every badge is a fact earned from real aggregates — no XP, no locked
-// slots, no participation trophies. Returned in priority order (rarest /
-// most impressive first): callers that can only fit a few (OG image,
-// story) take the head of the list; the card page shows them all.
+// slots, no participation trophies. Each badge carries an explicit rarity
+// weight and the result is sorted rarest-first: callers that can only fit
+// a few (OG image, story) take the head of the list; the card page shows
+// them all. Push order is NOT the priority — only the weight is, so adding
+// a badge mid-function can't silently reshuffle existing cards' OG images.
 // No tenure badge: the card's own "since <month year>" line already says
 // it, and a floor-years label ("1+ year") reads wrong next to it.
 export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
@@ -168,104 +161,78 @@ export function eraMilestones(payload: SnapshotPayload): EraMilestone[] {
     payload.sources.cursor,
     payload.sources.openrouter,
   ].filter(Boolean).length;
-  const out: EraMilestone[] = [];
+  const out: Array<EraMilestone & { weight: number }> = [];
+  const add = (weight: number, id: string, label: string) =>
+    out.push({ weight, id, label });
 
-  // Token volume — highest crossed tier only.
-  if (a.totalTokens >= 100_000_000_000)
-    out.push({ id: "100b", label: "100B tokens" });
-  else if (a.totalTokens >= 20_000_000_000)
-    out.push({ id: "20b", label: "20B tokens club" });
-  else if (a.totalTokens >= 2_500_000_000)
-    out.push({ id: "2-5b", label: "2.5B tokens" });
-  else if (a.totalTokens >= 1_000_000_000)
-    out.push({ id: "1b", label: "1B tokens club" });
-  else if (a.totalTokens >= 100_000_000)
-    out.push({ id: "100m", label: "100M tokens" });
-  else if (a.totalTokens >= 10_000_000)
-    out.push({ id: "10m", label: "10M tokens" });
+  // Token volume — highest crossed tier only. Top tiers outrank everything;
+  // the low entry tiers rank below rare non-volume badges on purpose.
+  if (a.totalTokens >= 100_000_000_000) add(100, "100b", "100B tokens");
+  else if (a.totalTokens >= 20_000_000_000) add(95, "20b", "20B tokens club");
+  else if (a.totalTokens >= 2_500_000_000) add(85, "2-5b", "2.5B tokens");
+  else if (a.totalTokens >= 1_000_000_000) add(80, "1b", "1B tokens club");
+  else if (a.totalTokens >= 100_000_000) add(40, "100m", "100M tokens");
+  else if (a.totalTokens >= 10_000_000) add(10, "10m", "10M tokens");
 
-  if (a.longestStreakDays >= 100)
-    out.push({ id: "streak100", label: "100-day streak" });
-  else if (a.longestStreakDays >= 30)
-    out.push({ id: "streak30", label: "30-day streak" });
+  if (a.longestStreakDays >= 100) add(75, "streak100", "100-day streak");
+  else if (a.longestStreakDays >= 30) add(45, "streak30", "30-day streak");
 
-  if (a.totalActiveDays >= 500)
-    out.push({ id: "500d", label: "500 active days" });
-  else if (a.totalActiveDays >= 365)
-    out.push({ id: "365d", label: "365 active days" });
-  else if (a.totalActiveDays >= 100)
-    out.push({ id: "100d", label: "100 active days" });
+  if (a.totalActiveDays >= 500) add(78, "500d", "500 active days");
+  else if (a.totalActiveDays >= 365) add(65, "365d", "365 active days");
+  else if (a.totalActiveDays >= 100) add(35, "100d", "100 active days");
 
   // Daily density — needs a real baseline of days to be honest.
   if (a.totalActiveDays >= 10) {
     const perDay = a.totalTokens / a.totalActiveDays;
-    if (perDay >= 20_000_000)
-      out.push({ id: "daily20m", label: "20M+ tokens/day" });
-    else if (perDay >= 5_000_000)
-      out.push({ id: "daily5m", label: "5M+ tokens/day" });
+    if (perDay >= 20_000_000) add(60, "daily20m", "20M+ tokens/day");
+    else if (perDay >= 5_000_000) add(30, "daily5m", "5M+ tokens/day");
   }
 
   // Consistency: active on most days since day one.
   const span = daysInclusive(a.firstActivityDate, a.lastActivityDate);
   if (span >= 60 && a.totalActiveDays / span >= 0.8)
-    out.push({ id: "consistent80", label: "Active 80% of days" });
+    add(55, "consistent80", "Active 80% of days");
 
   // Cache efficiency — only local-log sources report cache reads.
   const cacheRead = (cc?.cacheReadTokens ?? 0) + (cx?.cacheReadTokens ?? 0);
   const cacheBase = (cc?.totalTokens ?? 0) + (cx?.totalTokens ?? 0);
   if (cacheBase >= 100_000_000 && cacheRead / cacheBase >= 0.9)
-    out.push({ id: "cache90", label: "90% cache-efficient" });
+    add(50, "cache90", "90% cache-efficient");
 
   const sessions = (cc?.sessionCount ?? 0) + (cx?.sessionCount ?? 0);
-  if (sessions >= 10_000)
-    out.push({ id: "sessions10k", label: "10k sessions" });
-  else if (sessions >= 1_000)
-    out.push({ id: "sessions1k", label: "1,000 sessions" });
+  if (sessions >= 10_000) add(72, "sessions10k", "10k sessions");
+  else if (sessions >= 1_000) add(32, "sessions1k", "1,000 sessions");
 
-  if (a.distinctModels.length >= 20)
-    out.push({ id: "models20", label: "20+ models" });
-  else if (a.distinctModels.length >= 10)
-    out.push({ id: "models10", label: "10+ models" });
+  if (a.distinctModels.length >= 20) add(58, "models20", "20+ models");
+  else if (a.distinctModels.length >= 10) add(28, "models10", "10+ models");
 
-  // Builds with models from more than one provider.
+  // Builds with models from more than one provider. OpenRouter reports
+  // provider-prefixed ids ("openai/gpt-4.1"), so match after an optional
+  // "vendor/" prefix rather than anchoring at the start.
   const hasClaude = a.distinctModels.some((m) => /claude/i.test(m));
   const hasOpenAI = a.distinctModels.some((m) =>
-    /^(gpt|o\d|codex|chatgpt)/i.test(m)
+    /^(?:[\w.-]+\/)?(gpt|o\d|codex|chatgpt)/i.test(m)
   );
-  if (hasClaude && hasOpenAI)
-    out.push({ id: "xprovider", label: "Cross-provider" });
+  if (hasClaude && hasOpenAI) add(25, "xprovider", "Cross-provider");
 
-  if (sources >= 4) out.push({ id: "sources4", label: "All 4 sources" });
-  else if (sources >= 3) out.push({ id: "sources3", label: "3 tools" });
-  else if (sources >= 2) out.push({ id: "multi", label: "Multi-tool" });
+  if (sources >= 4) add(52, "sources4", "All 4 sources");
+  else if (sources >= 3) add(22, "sources3", "3 tools");
+  else if (sources >= 2) add(15, "multi", "Multi-tool");
 
-  if (cc && cc.projectCount >= 25)
-    out.push({ id: "projects25", label: "25+ projects" });
-  else if (cc && cc.projectCount >= 10)
-    out.push({ id: "projects10", label: "10+ projects" });
+  if (cc && cc.projectCount >= 25) add(48, "projects25", "25+ projects");
+  else if (cc && cc.projectCount >= 10) add(20, "projects10", "10+ projects");
 
   if (cx && cx.reasoningTokens >= 100_000_000)
-    out.push({ id: "reasoning100m", label: "100M reasoning tokens" });
+    add(62, "reasoning100m", "100M reasoning tokens");
 
   if (a.totalCostUsd != null && a.totalCostUsd >= 5_000)
-    out.push({ id: "spend5k", label: "$5k+ compute" });
+    add(76, "spend5k", "$5k+ compute");
   else if (a.totalCostUsd != null && a.totalCostUsd >= 500)
-    out.push({ id: "spend500", label: "$500+ compute" });
+    add(26, "spend500", "$500+ compute");
 
-  return out;
-}
-
-export function shareLine(payload: SnapshotPayload, url: string): string {
-  const rank = eraRank(payload);
-  const a = payload.aggregate;
-  const tokens =
-    a.totalTokens >= 1_000_000_000
-      ? (a.totalTokens / 1_000_000_000).toFixed(1) + "B"
-      : a.totalTokens >= 1_000_000
-        ? (a.totalTokens / 1_000_000).toFixed(1) + "M"
-        : String(a.totalTokens);
-  const who = payload.display.handle ? `${payload.display.handle} · ` : "";
-  return `${who}${rank.title} — ${tokens} tokens in the AI era. ${url}`;
+  return out
+    .sort((x, y) => y.weight - x.weight)
+    .map(({ id, label }) => ({ id, label }));
 }
 
 export function linkedInShareLine(payload: SnapshotPayload, url: string): string {

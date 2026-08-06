@@ -112,8 +112,9 @@ export default function Home() {
         />
 
         <p style={{ fontSize: 14, color: t.muted, margin: "20px 0 48px" }}>
-          Reads Claude Code, Codex, and Cursor usage on your machine. Optional
-          OpenRouter key. Shows the exact JSON before upload.{" "}
+          Reads Claude Code, Codex, and Cursor usage on your machine. OpenRouter
+          with <span style={{ fontFamily: t.mono }}>--openrouter</span>. Shows
+          the exact JSON before upload.{" "}
           <Link href="/privacy" style={{ color: t.link }}>
             Privacy contract
           </Link>
@@ -145,7 +146,7 @@ export default function Home() {
             <span style={{ color: t.accent, fontFamily: t.mono }}>01</span>
             {"  "}
             Collect locally — Claude Code + Codex JSONL, Cursor session API
-            (CSV fallback), optional OpenRouter.
+            (CSV fallback), OpenRouter via --openrouter.
           </li>
           <li>
             <span style={{ color: t.accent, fontFamily: t.mono }}>02</span>

@@ -1,15 +1,9 @@
-import { composeTerritory, type SnapshotPayload } from "@aieracard/schema";
-
-const RANKS = [
-  { level: 1, name: "Foundation", minTokens: 0 },
-  { level: 2, name: "Studio", minTokens: 25_000_000 },
-  { level: 3, name: "Foundry", minTokens: 150_000_000 },
-  { level: 4, name: "Tower", minTokens: 750_000_000 },
-  { level: 5, name: "Citadel", minTokens: 2_500_000_000 },
-  { level: 6, name: "Arcology", minTokens: 7_500_000_000 },
-  { level: 7, name: "Landmark", minTokens: 20_000_000_000 },
-  { level: 8, name: "Apex", minTokens: 100_000_000_000 },
-] as const;
+import {
+  composeTerritory,
+  eraRankBand,
+  eraRankTitle,
+  type SnapshotPayload,
+} from "@aieracard/schema";
 
 function fmtTokens(n: number): string {
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B";
@@ -22,12 +16,9 @@ function fmtUsd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
-/** Tier label for a token total, e.g. "TIER4 · TOWER" — used by the card
- * body and by the baseline delta to announce a crossed tier. */
-export function rankTitleFor(totalTokens: number): string {
-  const rank = RANKS.findLast((c) => totalTokens >= c.minTokens)!;
-  return `TIER${rank.level} · ${rank.name.toUpperCase()}`;
-}
+/** Tier label for a token total, e.g. "TIER4 · TOWER" — delegates to the
+ * canonical ladder in @aieracard/schema. */
+export const rankTitleFor = eraRankTitle;
 
 // A terminal-sized raster of the shared territory composer. The terminal has
 // fewer cells, but keeps the same rank massing and seeded tile roles as web.
@@ -35,9 +26,7 @@ export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const width = 10;
   const height = 7;
   const { aggregate } = payload;
-  const rank = RANKS.findLast(
-    (candidate) => aggregate.totalTokens >= candidate.minTokens
-  )!;
+  const rank = eraRankBand(aggregate.totalTokens);
   const { tiles } = composeTerritory(payload, rank.level);
   const minX = Math.min(...tiles.map((tile) => tile.x));
   const maxX = Math.max(...tiles.map((tile) => tile.x));
@@ -85,9 +74,6 @@ export function renderTextCard(payload: SnapshotPayload): string {
   const barWidth = 20;
   const filled = Math.round(primaryShare * barWidth);
   const sourceBar = `${"█".repeat(filled)}${"░".repeat(barWidth - filled)}`;
-  const rank = RANKS.findLast(
-    (candidate) => aggregate.totalTokens >= candidate.minTokens
-  )!;
   const compute =
     aggregate.totalCostUsd != null
       ? `${fmtUsd(aggregate.totalCostUsd)} compute`
@@ -97,7 +83,7 @@ export function renderTextCard(payload: SnapshotPayload): string {
   const artwork = renderTerminalMosaic(payload);
   const stats = [
     `AI ERA CARD · ${display.handle || "anonymous"}`,
-    `TIER${rank.level} · ${rank.name.toUpperCase()}`,
+    eraRankTitle(aggregate.totalTokens),
     `${fmtTokens(aggregate.totalTokens)} tokens`,
     `${compute} · ${aggregate.distinctModels.length} models`,
     `${aggregate.totalActiveDays} active days · ${aggregate.longestStreakDays}-day streak`,

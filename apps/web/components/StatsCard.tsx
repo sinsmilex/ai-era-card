@@ -24,6 +24,66 @@ const SOURCE_COLORS: Record<SourceKey, string> = {
   openrouter: "#C69CFF",
 };
 
+// Leaf component so the 5s rotation only re-renders this one text node —
+// not the whole card (mosaic, badges, metrics) on every tick.
+function RotatingEquivalent({
+  equivalents,
+  fallback,
+  accent,
+}: {
+  equivalents: Array<{ id: string; text: string }>;
+  fallback: string;
+  accent: string;
+}) {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+  // Reset/rewire the timer only when the actual rotation set changes, not
+  // on every parent render (scaleEquivalents returns a fresh array).
+  const rotationKey = equivalents.map((e) => e.id).join("|");
+
+  useEffect(() => {
+    setIndex(0);
+    setVisible(true);
+    if (
+      equivalents.length < 2 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    let fadeTimer: number | undefined;
+    const rotation = window.setInterval(() => {
+      if (document.hidden) return; // no work in background tabs
+      setVisible(false);
+      fadeTimer = window.setTimeout(() => {
+        setIndex((i) => (i + 1) % equivalents.length);
+        setVisible(true);
+      }, 160);
+    }, 5_000);
+    return () => {
+      window.clearInterval(rotation);
+      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotationKey]);
+
+  const equivalent = equivalents[index % equivalents.length];
+  return (
+    <div
+      style={{
+        fontSize: 14,
+        color: accent,
+        marginTop: 6,
+        marginBottom: 28,
+        minHeight: 18,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 160ms ease",
+      }}
+    >
+      {equivalent ? equivalent.text : fallback}
+    </div>
+  );
+}
+
 export function StatsCard({
   payload,
 }: {
@@ -46,36 +106,6 @@ export function StatsCard({
   const shownTokens = view ? view.tokens : a.totalTokens;
   const equivalents =
     shownTokens != null ? scaleEquivalents(shownTokens) : [];
-  const [equivalentIndex, setEquivalentIndex] = useState(0);
-  const [equivalentVisible, setEquivalentVisible] = useState(true);
-
-  useEffect(() => {
-    setEquivalentIndex(0);
-    setEquivalentVisible(true);
-
-    if (
-      equivalents.length < 2 ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
-
-    let fadeTimer: number | undefined;
-    const rotation = window.setInterval(() => {
-      setEquivalentVisible(false);
-      fadeTimer = window.setTimeout(() => {
-        setEquivalentIndex((index) => (index + 1) % equivalents.length);
-        setEquivalentVisible(true);
-      }, 160);
-    }, 5_000);
-
-    return () => {
-      window.clearInterval(rotation);
-      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer);
-    };
-  }, [equivalents.length, shownTokens]);
-
-  const equivalent = equivalents[equivalentIndex % equivalents.length];
   const shownFirstDate = view ? view.firstDate : a.firstActivityDate;
   const footerContext = view
     ? "Filtered view · not the share snapshot"
@@ -228,23 +258,11 @@ export function StatsCard({
           {view ? ` · ${view.label}` : ""}
           {shownFirstDate ? ` · since ${fmtMonthYear(shownFirstDate)}` : ""}
         </div>
-        <div
-          style={{
-            fontSize: 14,
-            color: palette.accent,
-            marginTop: 6,
-            marginBottom: 28,
-            minHeight: 18,
-            opacity: equivalentVisible ? 1 : 0,
-            transition: "opacity 160ms ease",
-          }}
-        >
-          {equivalent
-            ? equivalent.text
-            : view
-              ? "Token count not reported by this source."
-              : ""}
-        </div>
+        <RotatingEquivalent
+          equivalents={equivalents}
+          fallback={view ? "Token count not reported by this source." : ""}
+          accent={palette.accent}
+        />
 
         <div
           style={{
