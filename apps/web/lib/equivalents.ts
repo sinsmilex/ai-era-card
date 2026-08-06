@@ -27,9 +27,13 @@ const REFERENCE_PROMPT_WATER_ML = 0.12;
 const REFERENCE_PROMPT_ENERGY_WH = 0.1;
 const AVERAGE_HOME_KWH_PER_DAY = 29.6;
 
-// A comparison below this value would render as a false "≈ 0 …" (fmtQuantity's
+// A comparison below this value would render as a false "~ 0 …" (fmtQuantity's
 // one decimal bottoms out at 0.1), so we drop it from the rotation instead.
 const MIN_LEGIBLE_QUANTITY = 0.1;
+
+// ASCII "~" (not "≈"): Satori's default monospace for OG/download PNGs has no
+// ≈ glyph and draws an empty tofu box instead.
+const APPROX = "~";
 
 export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
   if (!Number.isFinite(tokens) || tokens <= 0) return [];
@@ -44,29 +48,29 @@ export function scaleEquivalents(tokens: number): ScaleEquivalent[] {
   const out: ScaleEquivalent[] = [
     {
       id: "war-and-peace",
-      text: `≈ ${fmtQuantity(warAndPeaceCopies)} ${
+      text: `${APPROX} ${fmtQuantity(warAndPeaceCopies)} ${
         warAndPeaceCopies === 1 ? "copy" : "copies"
       } of War and Peace`,
     },
     {
       id: "english-words",
-      text: `≈ ${fmtTokens(wordCount)} English ${wordCount === 1 ? "word" : "words"}`,
+      text: `${APPROX} ${fmtTokens(wordCount)} English ${wordCount === 1 ? "word" : "words"}`,
     },
   ];
   if (waterLiters >= MIN_LEGIBLE_QUANTITY)
     out.push({
       id: "ai-serving-water",
-      text: `≈ ${fmtQuantity(waterLiters)} liters of AI-serving water`,
+      text: `${APPROX} ${fmtQuantity(waterLiters)} liters of AI-serving water`,
     });
   if (energyKwh >= MIN_LEGIBLE_QUANTITY)
     out.push({
       id: "ai-serving-energy",
-      text: `≈ ${fmtQuantity(energyKwh)} kWh of AI-serving electricity`,
+      text: `${APPROX} ${fmtQuantity(energyKwh)} kWh of AI-serving electricity`,
     });
   if (averageHomePowerDays >= MIN_LEGIBLE_QUANTITY)
     out.push({
       id: "average-home-power",
-      text: `≈ ${fmtQuantity(averageHomePowerDays)} days of power for an average home`,
+      text: `${APPROX} ${fmtQuantity(averageHomePowerDays)} days of power for an average home`,
     });
   return out;
 }
