@@ -76,33 +76,16 @@ describe("eraRank", () => {
     expect(a.id).toBe(b.id);
   });
 
-  it("grows a deterministic territory silhouette with rank", () => {
+  it("grows a deterministic soft-tile landmark with rank", () => {
     const foundation = buildBuilding(payload(1_000_000));
-    const tower = buildBuilding(payload(1_500_000_000));
     const apex = buildBuilding(payload(100_000_000_000));
     expect(buildBuilding(payload(1_000_000))).toEqual(foundation);
     const foundationBounds = buildingBounds(foundation);
-    const towerBounds = buildingBounds(tower);
-    expect(towerBounds.maxY - towerBounds.minY).toBeGreaterThan(
+    const apexBounds = buildingBounds(apex);
+    expect(apexBounds.maxY - apexBounds.minY).toBeGreaterThan(
       foundationBounds.maxY - foundationBounds.minY
     );
-    expect(tower.filter((block) => block.role === "spire").length).toBeGreaterThan(0);
     expect(apex.length).toBeGreaterThan(foundation.length);
-  });
-
-  it("keeps the Tower's visual bottom row filled", () => {
-    const towerPayload = payload(1_500_000_000);
-    const tower = buildBuilding(towerPayload);
-    // CSS and SVG render y directly, so the maximum y row is visual bottom.
-    const bottomY = Math.max(...tower.map((block) => block.y));
-    const bottomRow = tower.filter((block) => block.y === bottomY);
-
-    expect(bottomRow.length).toBeGreaterThan(0);
-    expect(bottomRow.every((block) => block.role === "foundation")).toBe(true);
-    expect(bottomRow.every((block) => block.role !== "void")).toBe(true);
-    expect(bottomRow.every((block) => block.color !== eraPalette(towerPayload).bg)).toBe(
-      true
-    );
   });
 
   it("builds a calm LinkedIn summary with known compute", () => {

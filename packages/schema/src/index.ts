@@ -130,13 +130,6 @@ export type Aggregate = z.infer<typeof aggregateSchema>;
 export type SnapshotPayload = z.infer<typeof snapshotPayloadSchema>;
 
 export {
-  composeTerritory,
-  type TerritoryComposition,
-  type TerritoryTile,
-  type TerritoryTileRole,
-} from "./territory";
-
-export {
   ERA_RANKS,
   eraRankBand,
   eraRankTitle,

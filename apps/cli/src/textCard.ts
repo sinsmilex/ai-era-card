@@ -1,5 +1,4 @@
 import {
-  composeTerritory,
   eraRankBand,
   eraRankTitle,
   type SnapshotPayload,
@@ -20,33 +19,55 @@ function fmtUsd(n: number): string {
  * canonical ladder in @aieracard/schema. */
 export const rankTitleFor = eraRankTitle;
 
-// A terminal-sized raster of the shared territory composer. The terminal has
-// fewer cells, but keeps the same rank massing and seeded tile roles as web.
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// A terminal-sized version of the soft, scattered web mosaic. The rank still
+// influences a compact central mass, but the surrounding texture keeps it
+// from reading as a rigid architectural tower.
 export function renderTerminalMosaic(payload: SnapshotPayload): string[] {
   const width = 10;
   const height = 7;
   const { aggregate } = payload;
   const rank = eraRankBand(aggregate.totalTokens);
-  const { tiles } = composeTerritory(payload, rank.level);
-  const minX = Math.min(...tiles.map((tile) => tile.x));
-  const maxX = Math.max(...tiles.map((tile) => tile.x));
-  const minY = Math.min(...tiles.map((tile) => tile.y));
-  const maxY = Math.max(...tiles.map((tile) => tile.y));
+  const seed =
+    (aggregate.totalTokens % 1_000_003) * 31 +
+    aggregate.totalActiveDays * 7 +
+    aggregate.distinctModels.length * 131 +
+    aggregate.longestStreakDays * 17;
+  const random = mulberry32(seed);
   const blocks = Array.from({ length: height }, () =>
-    Array.from({ length: width }, () => ".")
+    Array.from({ length: width }, () => {
+      const brightness = random();
+      return brightness < 0.58 ? "." : brightness < 0.88 ? "+" : "#";
+    })
   );
-  const glyph = {
-    foundation: "#",
-    core: "#",
-    spire: "@",
-    window: "+",
-    void: ".",
-  } as const;
+  const buildingWidth = Math.min(width, 3 + rank.level);
+  const baseHeight = Math.min(height, rank.level + 1);
+  const left = Math.floor((width - buildingWidth) / 2);
 
-  for (const tile of tiles) {
-    const x = Math.round(((tile.x - minX) / (maxX - minX || 1)) * (width - 1));
-    const y = Math.round(((tile.y - minY) / (maxY - minY || 1)) * (height - 1));
-    blocks[y][x] = glyph[tile.role];
+  for (let x = 0; x < buildingWidth; x++) {
+    const centerDistance = Math.abs(x - (buildingWidth - 1) / 2);
+    const shoulder = Math.floor(centerDistance / 1.8);
+    const variation = random() > 0.72 ? 1 : random() < 0.24 ? -1 : 0;
+    const columnHeight = Math.max(
+      1,
+      Math.min(height, baseHeight - shoulder + variation)
+    );
+
+    for (let floor = 0; floor < columnHeight; floor++) {
+      const brightness = random();
+      blocks[height - 1 - floor][left + x] =
+        brightness < 0.18 ? "." : brightness < 0.5 ? "+" : brightness < 0.82 ? "#" : "@";
+    }
   }
 
   return blocks.map((row) => row.join(""));

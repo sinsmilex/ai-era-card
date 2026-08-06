@@ -104,13 +104,8 @@ export default async function OgImage({
                 top: (block.y - buildingBoundary.minY) * 27,
                 width: 22,
                 height: 22,
-                borderRadius: 1,
+                borderRadius: 4,
                 background: block.color,
-                border:
-                  block.role === "void"
-                    ? `1px solid ${palette.accentSoft}`
-                    : "1px solid rgba(255, 255, 255, 0.07)",
-                opacity: block.role === "void" ? 0.62 : 1,
                 display: "flex",
               }}
             />
